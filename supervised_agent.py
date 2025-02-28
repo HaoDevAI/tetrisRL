@@ -1,11 +1,11 @@
-from dqn_agent import BasicFF
+from agent import BasicFF
 import numpy as np
 import torch.optim as optim
 import torch.nn as nn
 import torch
 
 # Hyperparameters
-epochs = 1000
+epochs = 10000
 batch_size = 32
 lr = 1e-4
 # -----------

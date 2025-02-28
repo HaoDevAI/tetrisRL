@@ -1,7 +1,19 @@
 #from __future__ import print_function
-
+import pygame
 import numpy as np
 import random
+
+# Rendering constants
+BLOCK_SIZE = 30  # pixel size of one block
+BOARD_WIDTH = 10   # number of columns
+BOARD_HEIGHT = 20  # number of rows
+WINDOW_WIDTH = BOARD_WIDTH * BLOCK_SIZE
+WINDOW_HEIGHT = BOARD_HEIGHT * BLOCK_SIZE
+
+# Colors (R, G, B)
+BG_COLOR = (0, 0, 0)
+GRID_COLOR = (40, 40, 40)
+PIECE_COLOR = (200, 0, 0)
 
 shapes = {
     'T': [(0, 0), (-1, 0), (1, 0), (0, -1)],
@@ -151,7 +163,7 @@ class TetrisEngine:
 
         # Update time and reward
         self.time += 1
-        reward = self.valid_action_count()
+        #reward = self.valid_action_count()
         #reward = random.randint(0, 0)
         reward = 1
 
@@ -190,7 +202,27 @@ class TetrisEngine:
     def __repr__(self):
         self._set_piece(True)
         s = 'o' + '-' * self.width + 'o\n'
-        s += '\n'.join(['|' + ''.join(['X' if j else ' ' for j in i]) + '|' for i in self.board.T])
+        s += '\n'.join(['|' + ''.join(['X' if cell else ' ' for cell in row]) + '|'
+                        for row in self.board.T])
         s += '\no' + '-' * self.width + 'o'
         self._set_piece(False)
         return s
+
+    def draw(self, surface):
+        """Render the game board and current piece onto a Pygame surface."""
+        surface.fill(BG_COLOR)
+        # Draw placed blocks on the board
+        for x in range(self.width):
+            for y in range(self.height):
+                rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+                if self.board[x, y]:
+                    pygame.draw.rect(surface, PIECE_COLOR, rect)
+                pygame.draw.rect(surface, GRID_COLOR, rect, 1)
+        # Draw the current falling piece
+        for i, j in self.shape:
+            piece_x = int(self.anchor[0] + i)
+            piece_y = int(self.anchor[1] + j)
+            if 0 <= piece_x < self.width and 0 <= piece_y < self.height:
+                rect = pygame.Rect(piece_x * BLOCK_SIZE, piece_y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+                pygame.draw.rect(surface, PIECE_COLOR, rect)
+                pygame.draw.rect(surface, GRID_COLOR, rect, 1)

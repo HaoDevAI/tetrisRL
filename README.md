@@ -94,11 +94,11 @@ $ python supervised_agent.py training_data.npy
 ### Example reinforcement learning agent
 ```bash
 # Start from a new randomized dqn agent
-$ python dqn_agent.py
+$ python agent.py
 # Start from a the last recorded dqn checkpoint
-$ python dqn_agent.py resume
+$ python agent.py resume
 # Specify a custom checkpoint
-$ python dqn_agent.py resume supervised_checkpoint.pth.tar
+$ python agent.py resume supervised_checkpoint.pth.tar
 ```
 
 The DQN agent currently optimizes on a metric of freedom of action. In essence the agent should learn to maximize

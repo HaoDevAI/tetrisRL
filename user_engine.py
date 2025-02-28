@@ -1,138 +1,103 @@
-import curses
 import numpy as np
 import os
-from engine import TetrisEngine
+import pygame
+from engine import TetrisEngine, BOARD_WIDTH, BOARD_HEIGHT, BLOCK_SIZE, BG_COLOR, GRID_COLOR, PIECE_COLOR
+
+pygame.init()
+# Create a Pygame window based on the board dimensions and block size
+screen = pygame.display.set_mode((BOARD_WIDTH * BLOCK_SIZE, BOARD_HEIGHT * BLOCK_SIZE))
+pygame.display.set_caption("Tetris")
 
 def play_game():
-    # Store play information
-    db = []
-    '''
-    states = []
-    rewards = []
-    done_flags = []
-    actions = []
-    '''
-    # Initial rendering
-    stdscr.addstr(str(env))
-
+    db = []  # to store (state, reward, done, action) for training
     reward_sum = 0
     done = False
-    # Global action
-    action = 6
+    clock = pygame.time.Clock()
+
+    # Timer variables for automatic drop
+    drop_interval = 500  # milliseconds between automatic soft drops
+    last_drop_time = pygame.time.get_ticks()
 
     while not done:
-        action = 6
-        key = stdscr.getch()
+        action = None  # no immediate action by default
 
-        if key == -1: # No key pressed
-            action = 6
-        elif key == ord('a'): # Shift left
-            action = 0
-        elif key == ord('d'): # Shift right
-            action = 1
-        elif key == ord('w'): # Hard drop
-            action = 2
-        elif key == ord('s'): # Soft drop
-            action = 3
-        elif key == ord('q'): # Rotate left
-            action = 4
-        elif key == ord('e'): # Rotate right
-            action = 5
+        # Process events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                done = True
+                break
+            elif event.type == pygame.KEYDOWN:
+                # Map key presses to engine actions
+                if event.key == pygame.K_a:      # Shift left
+                    action = 0
+                elif event.key == pygame.K_d:    # Shift right
+                    action = 1
+                elif event.key == pygame.K_w:    # Hard drop
+                    action = 2
+                elif event.key == pygame.K_s:    # Soft drop
+                    action = 3
+                elif event.key == pygame.K_q:    # Rotate left
+                    action = 4
+                elif event.key == pygame.K_e:    # Rotate right
+                    action = 5
 
-        # Game step
-        state, reward, done = env.step(action)
-        reward_sum += reward
-        db.append(np.array((state,reward,done,action)))
-        '''
-        states.append(state)
-        rewards.append(reward)
-        done_flags.append(done)
-        actions.append(action)
-        '''
+        # Check timer for automatic soft drop if no key was pressed
+        current_time = pygame.time.get_ticks()
+        if action is None and (current_time - last_drop_time >= drop_interval):
+            action = 3  # soft drop action
 
-        # Render
-        stdscr.clear()
-        stdscr.addstr(str(env))
-        stdscr.addstr('\ncumulative reward: ' + str(reward_sum))
-        stdscr.addstr('\nreward: ' + str(reward))
+        # If an action was triggered (either by key or auto drop), update the engine
+        if action is not None:
+            state, reward, done = env.step(action)
+            reward_sum += reward
+            db.append(np.array((state, reward, done, action), dtype="object"))
+            last_drop_time = current_time  # reset drop timer
 
-    '''
-    db = {
-        'states' : np.array(states),
-        'rewards' : np.array(rewards),
-        'done_flags' : np.array(done_flags),
-        'actions' : np.array(actions),
-    }
-    '''
+        # Render the game
+        env.draw(screen)
+        pygame.display.flip()
+
+        # Limit the loop to 60 FPS
+        clock.tick(60)
+
     return db
 
 def play_again():
-    print('Play Again? [y/n]')
-    print('> ', end='')
-    choice = input()
-
+    choice = input("Play Again? [y/n] > ")
     return True if choice.lower() == 'y' else False
 
-def prompt_save_game():
-    #print('Accumulated reward: {0} | {1} moves'.format(sum(db['rewards']), db['actions'].shape[0]))
+def prompt_save_game(db):
     print('Accumulated reward: {0} | {1} moves'.format(sum([i[1] for i in db]), len(db)))
-    print('Would you like to store the game info as training data? [y/n]')
-    #stdscr.addstr('Would you like to store the game info as training data? [y/n]\n')
-    #stdscr.addstr('> ')
-    print('> ', end='')
-    choice = input()
+    choice = input('Would you like to store the game info as training data? [y/n] > ')
     return True if choice.lower() == 'y' else False
 
-def save_game(path='training_data.npy'):
-    if os.path.exists(path):
-        x = np.load(path, allow_pickle=True)
-        x = np.concatenate((x,db))
-        np.save(path, x)
-        print('{0} data points in the training set'.format(len(x)))
-    else:
-        print('no training file exists. Creating one now...')
-        #fw = open('training_data.npy', 'wb')
+def save_game(db, path='training_data.npy'):
+    if not os.path.exists(path) or os.path.getsize(path) == 0:
+        print('No training file exists. Creating one now...')
         print('Saving {0} moves...'.format(len(db)))
         np.save(path, db)
-
-def terminate():
-    curses.nocbreak()
-    stdscr.keypad(False)
-    curses.echo()
-    curses.endwin()
-    os.system("stty sane")
-
-def init():
-    # Don't display user input
-    curses.noecho()
-    # React to keys without pressing enter (700ms delay)
-    curses.halfdelay(7)
-    # Enumerate keys
-    stdscr.keypad(True)
-
-    #return stdscr
+    else:
+        x = np.load(path, allow_pickle=True)
+        x = np.concatenate((x, db))
+        np.save(path, x)
+        print('{0} data points in the training set'.format(len(x)))
 
 if __name__ == '__main__':
-    # Curses standard screen
-    stdscr = curses.initscr()
-
-    # Init environment
-    width, height = 10, 20 # standard tetris friends rules
+    # Initialize the Tetris engine with board dimensions (e.g. 10x20)
+    width, height = 10, 20
     env = TetrisEngine(width, height)
 
-    # Play games on repeat
+    # Main game loop (play multiple games)
     while True:
-        init()
-        stdscr.clear()
-        env.clear()
-        db = play_game()
+        env.clear()       # Reset the board and game state
+        db = play_game()  # Play one game and collect training data
 
-        # Return to terminal
-        terminate()
-        # Should the game info be saved?
-        if prompt_save_game():
-            save_game()
-        # Prompt to play again
+        # After the game ends, prompt the user for saving data
+        if prompt_save_game(db):
+            save_game(db)
+        # Ask if the user wants to play again
         if not play_again():
             print('Thanks for contributing!')
             break
+
+    pygame.quit()
