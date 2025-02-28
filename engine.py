@@ -84,7 +84,7 @@ class TetrisEngine:
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.board = np.zeros(shape=(width, height), dtype=np.bool)
+        self.board = np.zeros(shape=(width, height), dtype=np.bool_)
 
         # actions are triggered by letters
         self.value_action_map = {

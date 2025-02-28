@@ -158,6 +158,7 @@ def optimize_model():
 
     # Create masks for non-terminal states
     non_final_mask = ByteTensor(tuple(s is not None for s in batch.next_state))
+    non_final_mask = non_final_mask.bool()
     non_final_next_states = torch.cat([s for s in batch.next_state if s is not None])
     state_batch = torch.cat(batch.state)
     action_batch = torch.cat(batch.action)
