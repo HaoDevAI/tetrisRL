@@ -1,5 +1,5 @@
 # test_agent.py
-
+import numpy as np
 import sys
 import pygame
 import time
@@ -32,6 +32,9 @@ PANEL_BG_COLOR = (50, 50, 50)
 TEXT_COLOR = (255, 255, 255)
 BUTTON_BG_COLOR = (70, 70, 70)
 BUTTON_HOVER_COLOR = (100, 100, 100)
+
+#Agent
+WEIGHTS = 'E:\\HaoDevAI\\REL301m\\HaoNA_Assignment\\data\\weights\\best_weights.npy'
 
 def draw_grid(screen, board):
     """Draw the grid with placed blocks."""
@@ -165,8 +168,9 @@ def main():
     running = True
     while running:
         # Khởi tạo game mới và agent
+        load_weights = np.load(WEIGHTS)
         gm = GameManager()
-        agent = TetrisAgent(gm)
+        agent = TetrisAgent(gm,load_weights)
         drop_interval = DROP_INTERVAL
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)

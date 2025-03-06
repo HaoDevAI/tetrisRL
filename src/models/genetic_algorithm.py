@@ -24,17 +24,17 @@ MAX_GENERATIONS = 2
 
 # Hàm giả định để mô phỏng trò chơi Tetris
 # Thực tế, hàm này sẽ chạy trò chơi Tetris với tham số heuristic và trả về tổng số dòng cleared
-def simulate_tetris_game(parameters):
+def simulate_tetris_game(random_weights):
     """
         Chạy 1 game Tetris sử dụng agent với số nước đi tối đa max_moves.
         Trả về số dòng cleared (score) của game.
         """
     gm = GameManager()
-    agent = TetrisAgent(gm)
+    agent = TetrisAgent(gm,random_weights)
     moves = 0
 
     while moves < MAX_MOVES and not gm.game_over:
-        best_move = agent.get_best_move(parameters)
+        best_move = agent.get_best_move()
         if best_move is not None:
             # Thực hiện các xoay cần thiết
             for _ in range(best_move["rotations"]):
@@ -51,10 +51,10 @@ def simulate_tetris_game(parameters):
     return gm.score
 
 
-def compute_fitness(parameters):
+def compute_fitness(random_weights):
     total_lines = 0
     for _ in range(NUM_GAMES):
-        total_lines += simulate_tetris_game(parameters)
+        total_lines += simulate_tetris_game(random_weights)
     return total_lines
 
 
