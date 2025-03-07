@@ -1,11 +1,13 @@
 import random
 from src.environments.piece import Piece, SHAPES
 
+SHAPE_KEYS = list(SHAPES.keys())
+
 def random_piece_generator():
     """
     Select a random Tetris piece and return a new Piece instance.
     """
-    shape = random.choice(list(SHAPES.keys()))
+    shape = random.choice(SHAPE_KEYS)
     return Piece(shape)
 
 # Example usage:

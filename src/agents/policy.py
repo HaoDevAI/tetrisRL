@@ -19,22 +19,12 @@ def get_weights(weights):
         "BUMPINESS_WEIGHT":         weights[3],
     }
 
-def get_board_dimensions(board):
-    """
-    Trả về số dòng (rows) và số cột (cols) của board.
-    """
-    rows = len(board)
-    cols = len(board[0]) if rows > 0 else 0
-    return rows, cols
-
-
-def compute_column_heights(board):
+def compute_column_heights(board,rows,cols):
     """
     Tính chiều cao của từng cột.
     Chiều cao của cột được định nghĩa là số ô từ vị trí đầu tiên gặp khối (1) đến đáy board.
     Nếu cột trống hoàn toàn thì chiều cao bằng 0.
     """
-    rows, cols = get_board_dimensions(board)
     heights = [0] * cols
     for col in range(cols):
         # Tìm hàng đầu tiên có giá trị 1 trong cột, tính từ đầu (trên) xuống dưới.
@@ -59,24 +49,23 @@ def compute_complete_lines(board):
     """
     complete_lines = 0
     for row in board:
-        if all(cell != 0 for cell in row):
+        if 0 not in row:
             complete_lines += 1
     return complete_lines
 
 
-def compute_holes(board, heights):
+def compute_holes(board, rows, cols):
     """
     Đếm số lỗ trống trên board.
     Một lỗ trống là ô trống (0) có ít nhất một ô đã được lấp (1) phía trên nó trong cùng cột.
     """
-    rows, cols = get_board_dimensions(board)
     holes = 0
     for col in range(cols):
         block_found = False
         for row in range(rows):
             if board[row][col]:
                 block_found = True
-            elif block_found and not board[row][col]:
+            elif block_found:
                 holes += 1
     return holes
 
@@ -85,10 +74,7 @@ def compute_bumpiness(heights):
     """
     Tính độ gồ ghề bằng tổng độ chênh lệch giữa các cột liền kề.
     """
-    bumpiness = 0
-    for i in range(len(heights) - 1):
-        bumpiness += abs(heights[i] - heights[i + 1])
-    return bumpiness
+    return sum(abs(heights[i] - heights[i + 1]) for i in range(len(heights) - 1))
 
 
 def evaluate_state(state,weights):
@@ -102,10 +88,11 @@ def evaluate_state(state,weights):
     """
     board = state.grid.board  # giả sử state có thuộc tính board
     # Tính các đặc trưng
-    heights = compute_column_heights(board)
+    rows, cols = state.grid.rows, state.grid.cols
+    heights = compute_column_heights(board,rows,cols)
     aggregate_height = compute_aggregate_height(heights)
     complete_lines = compute_complete_lines(board)
-    holes = compute_holes(board, heights)
+    holes = compute_holes(board,rows,cols)
     bumpiness = compute_bumpiness(heights)
     weights = get_weights(weights)
     # Tính điểm tổng theo công thức

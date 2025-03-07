@@ -1,14 +1,27 @@
-import copy
 from src.environments.grid import Grid
 from src.environments.random_piece_generator import random_piece_generator
 
 class TetrisEnv:
     def __init__(self, rows=20, cols=10):
+        
         self.grid = Grid(rows, cols)
         self.current_piece = random_piece_generator()
         self.next_piece = random_piece_generator()
         self.score = 0
         self.game_over = False
+
+    def clone(self):
+        """
+        Trả về một bản sao của TetrisEnv bằng cách sử dụng hàm clone của các thành phần.
+        Lưu ý: Chúng ta giả định rằng Grid và Piece đã có hàm clone riêng.
+        """
+        new_env = TetrisEnv.__new__(TetrisEnv)
+        new_env.grid = self.grid.clone()
+        new_env.current_piece = self.current_piece.clone()
+        new_env.next_piece = self.next_piece.clone()
+        new_env.score = self.score
+        new_env.game_over = self.game_over
+        return new_env
 
     def new_piece(self):
         """Set the current piece to the next one, and generate a new next piece.
@@ -101,12 +114,12 @@ class TetrisEnv:
         """
         moves = []
         # Lưu lại trạng thái ban đầu của mảnh hiện tại
-        original_piece = copy.deepcopy(self.current_piece)
+        original_piece = self.current_piece.clone()
 
         # Thử 0 đến 3 lần xoay
         for rotations in range(4):
             # Tạo bản sao của mảnh với số lần xoay tương ứng
-            piece_copy = copy.deepcopy(original_piece)
+            piece_copy = original_piece.clone()
             for _ in range(rotations):
                 piece_copy.rotate()
 
@@ -126,7 +139,7 @@ class TetrisEnv:
             # print(f"Rotation {rotations}: min_offset={min_offset}, max_offset={max_offset}, min_x={min_x}, max_x={max_x}")
 
             for x in range(min_x, max_x + 1):
-                test_piece = copy.deepcopy(piece_copy)
+                test_piece = piece_copy.clone()
                 test_piece.x = x
                 if self.grid.is_valid_position(test_piece):
                     moves.append({"rotations": rotations, "x": x})
@@ -138,7 +151,7 @@ class TetrisEnv:
         move: dict có 2 khóa "rotations" và "x".
         Trả về một bản sao của TetrisEnv sau khi áp dụng nước đi và hard drop.
         """
-        simulated_game = copy.deepcopy(self)
+        simulated_game = self.clone()
 
         # Áp dụng số lần xoay cho mảnh hiện tại.
         for _ in range(move["rotations"]):

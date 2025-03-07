@@ -5,17 +5,18 @@ class Grid:
         self.cols = cols
         self.board = [[0 for _ in range(cols)] for _ in range(rows)]
 
+    def clone(self):
+        new_grid = Grid(self.rows, self.cols)
+        # Tạo copy nông cho board (list of lists)
+        new_grid.board = [row[:] for row in self.board]
+        return new_grid
+
     def is_valid_position(self, piece):
-        """
-        Check if the piece is in a valid position.
-        Returns True if all cells of the piece are within bounds and not colliding.
-        """
-        for x, y in piece.get_cells():
-            if x < 0 or x >= self.cols or y < 0 or y >= self.rows:
-                return False
-            if self.board[y][x]:
-                return False
-        return True
+        rows, cols, board = self.rows, self.cols, self.board
+        return all(
+            0 <= x < cols and 0 <= y < rows and not board[y][x]
+            for x, y in piece.get_cells()
+        )
 
     def place_piece(self, piece):
         """
@@ -29,12 +30,17 @@ class Grid:
         """
         Clear complete lines and return the number of lines cleared.
         """
-        new_board = [row for row in self.board if any(cell == 0 for cell in row)]
+        cols = self.cols
+        # Giữ lại các dòng không đầy (có chứa 0)
+        new_board = [row for row in self.board if 0 in row]
         lines_cleared = self.rows - len(new_board)
-        # Add new empty rows at the top
-        for _ in range(lines_cleared):
-            new_board.insert(0, [0 for _ in range(self.cols)])
-        self.board = new_board
+        if lines_cleared:
+            # Tạo các dòng trống mới
+            empty_rows = [[0] * cols for _ in range(lines_cleared)]
+            # Nối các dòng trống vào đầu bảng
+            self.board = empty_rows + new_board
+        else:
+            self.board = new_board
         return lines_cleared
 
     def print_board(self):

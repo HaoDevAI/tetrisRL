@@ -1,5 +1,3 @@
-import copy
-
 SHAPES = {
         'I': [
             [
@@ -120,7 +118,7 @@ class Piece:
         self.shape = shape
         self.rotations = SHAPES[shape]
         self.rotation_index = 0
-        self.matrix = copy.deepcopy(self.rotations[self.rotation_index])
+        self.matrix = [row[:] for row in self.rotations[self.rotation_index]]
         # Position on grid (x for column, y for row)
         self.x = 3  # Starting X position (may vary)
         self.y = 0  # Starting Y position
@@ -128,7 +126,7 @@ class Piece:
     def rotate(self):
         """Rotate the piece clockwise."""
         self.rotation_index = (self.rotation_index + 1) % len(self.rotations)
-        self.matrix = copy.deepcopy(self.rotations[self.rotation_index])
+        self.matrix = [row[:] for row in self.rotations[self.rotation_index]]
 
     def rotate_counterclockwise(self):
         """Rotate the piece counterclockwise."""
@@ -156,7 +154,7 @@ class Piece:
         """Return a copy of the piece (for simulation purposes)."""
         cloned = Piece(self.shape)
         cloned.rotation_index = self.rotation_index
-        cloned.matrix = copy.deepcopy(self.matrix)
+        cloned.matrix = [row[:] for row in self.matrix]
         cloned.x = self.x
         cloned.y = self.y
         return cloned
