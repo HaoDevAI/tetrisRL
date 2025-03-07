@@ -1,7 +1,7 @@
 import numpy as np
 import random
 from src.agents.linear_agent import TetrisAgent
-from src.environments.env import GameManager
+from src.environments.env import TetrisEnv
 import datetime
 import os
 LOG_DIR = "E:\HaoDevAI\REL301m\HaoNA_Assignment\data\weights"
@@ -29,26 +29,26 @@ def simulate_tetris_game(random_weights):
         Chạy 1 game Tetris sử dụng agent với số nước đi tối đa max_moves.
         Trả về số dòng cleared (score) của game.
         """
-    gm = GameManager()
-    agent = TetrisAgent(gm,random_weights)
+    env = TetrisEnv
+    agent = TetrisAgent(env,random_weights)
     moves = 0
 
-    while moves < MAX_MOVES and not gm.game_over:
+    while moves < MAX_MOVES and not env.game_over:
         best_move = agent.get_best_move()
         if best_move is not None:
             # Thực hiện các xoay cần thiết
             for _ in range(best_move["rotations"]):
-                gm.rotate_piece(clockwise=True)
+                env.rotate_piece(clockwise=True)
             # Đặt mảnh vào vị trí x được chọn
-            gm.current_piece.x = best_move["x"]
+            env.current_piece.x = best_move["x"]
             # Thực hiện hard drop để đưa mảnh xuống vị trí cuối cùng
-            gm.hard_drop()
+            env.hard_drop()
         else:
             # Nếu không có nước đi khả dĩ, tiến hành drop tự động
-            gm.drop_piece()
+            env.drop_piece()
         moves += 1
 
-    return gm.score
+    return env.score
 
 
 def compute_fitness(random_weights):

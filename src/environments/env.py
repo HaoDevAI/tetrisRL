@@ -2,7 +2,7 @@ import copy
 from src.environments.grid import Grid
 from src.environments.random_piece_generator import random_piece_generator
 
-class GameManager:
+class TetrisEnv:
     def __init__(self, rows=20, cols=10):
         self.grid = Grid(rows, cols)
         self.current_piece = random_piece_generator()
@@ -136,7 +136,7 @@ class GameManager:
         """
         Giả lập việc thực hiện nước đi được chỉ định.
         move: dict có 2 khóa "rotations" và "x".
-        Trả về một bản sao của GameManager sau khi áp dụng nước đi và hard drop.
+        Trả về một bản sao của TetrisEnv sau khi áp dụng nước đi và hard drop.
         """
         simulated_game = copy.deepcopy(self)
 
@@ -157,7 +157,7 @@ class GameManager:
         return simulated_game
 # Example usage:
 if __name__ == "__main__":
-    gm = GameManager()
+    gm = TetrisEnv()
     print("Starting game...")
     while not gm.game_over:
         gm.update()

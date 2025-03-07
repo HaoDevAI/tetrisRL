@@ -1,7 +1,6 @@
 import sys
 import pygame
-from src.grid import Grid
-from src.env import GameManager
+from src.environments.env import TetrisEnv
 
 # Configuration
 BLOCK_SIZE = 30  # Size of one grid cell in pixels
@@ -172,7 +171,7 @@ def main():
 
     running = True
     while running:
-        gm = GameManager()
+        env = TetrisEnv()
         drop_interval = 500
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)
@@ -184,35 +183,35 @@ def main():
                     game_active = False
                     running = False
                 elif event.type == DROP_EVENT:
-                    gm.drop_piece()
+                    env.drop_piece()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_a:
-                        gm.move_piece(-1, 0)
+                        env.move_piece(-1, 0)
                     elif event.key == pygame.K_d:
-                        gm.move_piece(1, 0)
+                        env.move_piece(1, 0)
                     elif event.key == pygame.K_s:
-                        gm.move_piece(0, 1)
+                        env.move_piece(0, 1)
                     elif event.key == pygame.K_w:
-                        gm.hard_drop()
+                        env.hard_drop()
                     elif event.key == pygame.K_q:
-                        gm.rotate_piece(clockwise=False)
+                        env.rotate_piece(clockwise=False)
                     elif event.key == pygame.K_e:
-                        gm.rotate_piece(clockwise=True)
+                        env.rotate_piece(clockwise=True)
 
 
             screen.fill(BACKGROUND_COLOR)
-            draw_grid(screen, gm.grid.board)
-            draw_piece(screen, gm.current_piece.get_cells(), PIECE_COLOR)
-            draw_panel(screen, gm, font)
+            draw_grid(screen, env.grid.board)
+            draw_piece(screen, env.current_piece.get_cells(), PIECE_COLOR)
+            draw_panel(screen, env, font)
             pygame.display.flip()
 
-            if gm.game_over:
+            if env.game_over:
                 game_active = False
 
             clock.tick(60)
 
         # Show game over screen with play again option
-        play_again = check_play_again(screen, font, gm.score)
+        play_again = check_play_again(screen, font, env.score)
         if not play_again:
             running = False
 

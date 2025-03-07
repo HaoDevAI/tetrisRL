@@ -3,7 +3,7 @@ import numpy as np
 import sys
 import pygame
 import time
-from src.environments.env import GameManager
+from src.environments.env import TetrisEnv
 from src.agents.linear_agent import TetrisAgent
 
 GAME_FPS = 60  #default 60
@@ -169,8 +169,8 @@ def main():
     while running:
         # Khởi tạo game mới và agent
         load_weights = np.load(WEIGHTS)
-        gm = GameManager()
-        agent = TetrisAgent(gm,load_weights)
+        env = TetrisEnv()
+        agent = TetrisAgent(env,load_weights)
         drop_interval = DROP_INTERVAL
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)
@@ -193,31 +193,31 @@ def main():
                         if best_move is not None:
                             # Thực hiện các xoay cần thiết
                             for _ in range(best_move["rotations"]):
-                                gm.rotate_piece(clockwise=True)
+                                env.rotate_piece(clockwise=True)
                             # Di chuyển mảnh về vị trí x được chọn
-                            gm.current_piece.x = best_move["x"]
+                            env.current_piece.x = best_move["x"]
                             # Thực hiện hard drop
-                            gm.hard_drop()
+                            env.hard_drop()
                         agent_move_made = True
                         last_move_time = time.time()
                     else:
                         # Nếu agent đã thực hiện nước đi, cập nhật game theo drop_piece (hoặc tự động)
-                        gm.drop_piece()
+                        env.drop_piece()
                         agent_move_made = False
 
             screen.fill(BACKGROUND_COLOR)
-            draw_grid(screen, gm.grid.board)
-            draw_piece(screen, gm.current_piece.get_cells(), PIECE_COLOR)
-            draw_panel(screen, gm, font)
+            draw_grid(screen, env.grid.board)
+            draw_piece(screen, env.current_piece.get_cells(), PIECE_COLOR)
+            draw_panel(screen, env, font)
             pygame.display.flip()
 
-            if gm.game_over:
+            if env.game_over:
                 game_active = False
 
             clock.tick(GAME_FPS)
 
         # Sau khi game kết thúc, hiển thị màn hình game over với lựa chọn chơi lại.
-        play_again = check_play_again(screen, font, gm.score)
+        play_again = check_play_again(screen, font, env.score)
         if not play_again:
             running = False
 
