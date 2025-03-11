@@ -1,0 +1,25 @@
+
+        --- THÔNG SỐ TRAINING ---
+        Time Start: 2025-03-11 14:15:53
+        WEIGHTS: E:\HaoDevAI\REL301m\HaoNA_Assignment\data\weights\start_weights.npy
+        POPULATION_SIZE: 100
+        NUM_GAMES: 5
+        MAX_MOVES: 500
+        MAX_GENERATIONS: 10
+        SIGMA: 0.1
+        ALPHA: 0.01
+
+        
+        --- KẾT QUẢ TRAINING ---
+        Time End: 2025-03-11 14:39:19
+        Training Duration: 0:23:25.401225
+        Best Fitness: 908
+        Best Rewards per Generation: [np.int64(792), np.int64(886), np.int64(972), np.int64(986), np.int64(987), np.int64(979), np.int64(980), np.int64(980), np.int64(987), np.int64(984)]
+        Average Rewards per Generation: [np.float64(368.19), np.float64(492.71), np.float64(607.37), np.float64(734.83), np.float64(730.76), np.float64(714.39), np.float64(743.45), np.float64(688.77), np.float64(742.62), np.float64(751.41)]
+
+        Final Heuristic Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = -0.578962
+        COMPLETE_LINES_WEIGHT = 0.487338
+        HOLES_WEIGHT = -0.602348
+        BUMPINESS_WEIGHT = -0.253933
+        

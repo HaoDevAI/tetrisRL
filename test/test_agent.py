@@ -1,10 +1,19 @@
 import numpy as np
-import sys
 import pygame
+import sys
 import time
 import threading
 from src.environments.env import TetrisEnv
 from src.agents.linear_agent import TetrisAgent
+from pathlib import Path
+
+# Đường dẫn file
+FILE_DIR = Path(__file__).parent.parent
+WEIGHTS_DIR = FILE_DIR / 'data' / 'weights'
+WEIGHTS = WEIGHTS_DIR / '2025_03_11_14_39_best_weights.npy'
+LOG_DIR = FILE_DIR / 'data' / 'logs'
+log_name = WEIGHTS.stem.replace("_best_weights", "")+ "_test_logs.txt"
+log_path = LOG_DIR / log_name
 
 # Cấu hình game
 GAME_FPS = 60  # FPS cho game UI
@@ -33,13 +42,13 @@ TEXT_COLOR = (255, 255, 255)
 BUTTON_BG_COLOR = (70, 70, 70)
 BUTTON_HOVER_COLOR = (100, 100, 100)
 
-# Đường dẫn file trọng số
-WEIGHTS = 'E:\\HaoDevAI\\REL301m\\HaoNA_Assignment\\data\\weights\\best_weights.npy'
+
 
 # Biến toàn cục cho background simulation
 max_background_score = 0
 min_background_score = float('inf')
 total_background_score = 0
+total_background_moves = 0
 games_played = 0
 simulation_finished = False
 score_lock = threading.Lock()
@@ -93,22 +102,32 @@ def draw_panel(screen, gm, font):
         bg_min = min_background_score if games_played > 0 else 0
         progress = games_played
         avg_score = total_background_score / games_played if games_played > 0 else 0
+        avg_moves = total_background_moves / games_played if games_played > 0 else 0
+
+    # Hiển thị số moves đã thực hiện / moves_played
+    moves_text = font.render(f"Moves: {gm.moves_played}", True, TEXT_COLOR)
+    screen.blit(moves_text, (panel_rect.x + 10, panel_rect.y + 200))
+
 
     # Hiển thị số game đã chạy / NUM_GAMES
     progress_text = font.render(f"Progress: {progress}/{NUM_GAMES}", True, TEXT_COLOR)
-    screen.blit(progress_text, (panel_rect.x + 10, panel_rect.y + 350))
+    screen.blit(progress_text, (panel_rect.x + 10, panel_rect.y + 450))
 
     # Hiển thị average score từ simulation nền
-    avg_text = font.render(f"Avg: {avg_score:.2f}", True, TEXT_COLOR)
-    screen.blit(avg_text, (panel_rect.x + 10, panel_rect.y + 300))
+    avg_score_text = font.render(f"Avg score: {avg_score:.2f}", True, TEXT_COLOR)
+    screen.blit(avg_score_text, (panel_rect.x + 10, panel_rect.y + 350))
+
+    # Hiển thị average moves  từ simulation nền
+    avg_moves_text = font.render(f"Avg moves: {avg_moves:.2f}", True, TEXT_COLOR)
+    screen.blit(avg_moves_text, (panel_rect.x + 10, panel_rect.y + 400))
 
     # Hiển thị max score từ simulation nền
     max_text = font.render(f"Max: {bg_max}", True, TEXT_COLOR)
-    screen.blit(max_text, (panel_rect.x + 10, panel_rect.y + 200))
+    screen.blit(max_text, (panel_rect.x + 10, panel_rect.y + 250))
 
     # Hiển thị min score từ simulation nền
     min_text = font.render(f"Min: {bg_min}", True, TEXT_COLOR)
-    screen.blit(min_text, (panel_rect.x + 10, panel_rect.y + 250))
+    screen.blit(min_text, (panel_rect.x + 10, panel_rect.y + 300))
 
 
 
@@ -185,7 +204,7 @@ def check_play_again(screen, font, final_score):
 
 
 def run_background_games():
-    global max_background_score, min_background_score, total_background_score, games_played, simulation_finished
+    global max_background_score, min_background_score, total_background_score, total_background_moves, games_played, simulation_finished
     load_weights = np.load(WEIGHTS)
 
     # Chạy simulation cho NUM_GAMES game mà không vẽ giao diện
@@ -201,14 +220,16 @@ def run_background_games():
                     env.rotate_piece(clockwise=True)
                 env.current_piece.x = best_move["x"]
                 env.hard_drop()
+                env.moves_played += 1
             else:
                 env.drop_piece()
-
+                env.moves_played += 1
             if env.game_over:
                 game_active = False
                 with score_lock:
                     games_played = game_index + 1
                     total_background_score += env.score
+                    total_background_moves += env.moves_played
                     if env.score > max_background_score:
                         max_background_score = env.score
                     if env.score < min_background_score:
@@ -232,6 +253,7 @@ def main():
     while running:
         env = TetrisEnv(ROWS, COLUMNS)
         load_weights = np.load(WEIGHTS)
+        #load_weights = np.array([-0.5, 0.5, -0.5, -0.5])
         agent = TetrisAgent(env, load_weights)
         pygame.time.set_timer(pygame.USEREVENT + 1, DROP_INTERVAL)
         game_active = True
@@ -250,8 +272,10 @@ def main():
                                 env.rotate_piece(clockwise=True)
                             env.current_piece.x = best_move["x"]
                             env.hard_drop()
+                            env.moves_played += 1
                         else:
                             env.drop_piece()
+                            env.moves_played += 1
                         last_move_time = time.time()
 
             # Vẽ UI game
@@ -276,14 +300,23 @@ def main():
     # Sau khi tắt giao diện, in kết quả simulation nền ra terminal
     with score_lock:
         avg_score = total_background_score / games_played if games_played > 0 else 0
+        avg_moves = total_background_moves / games_played if games_played > 0 else 0
         min_score = min_background_score if games_played > 0 else 0
-        print("Simulation finished:")
-        print(f"Progress: {games_played}/{NUM_GAMES}")
-        print(f"Max Score: {max_background_score}")
-        print(f"Min Score: {min_score}")
-        print(f"Average Score: {avg_score:.2f}")
+        logs = (
+            "Simulation finished:\n"
+            f"Progress: {games_played}/{NUM_GAMES}\n"
+            f"Max Score: {max_background_score}\n"
+            f"Min Score: {min_score}\n"
+            f"Average Score: {avg_score:.2f}\n"
+            f"Average moves: {avg_moves:.2f}\n"
+        )
 
-    sys.exit()
+        # In ra terminal
+        print(logs)
+
+        # Ghi vào file test_log.txt
+        with open(log_path, "a") as log_file:
+            log_file.write(logs + "\n")
 
 
 if __name__ == "__main__":

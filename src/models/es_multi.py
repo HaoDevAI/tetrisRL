@@ -3,24 +3,26 @@ import time
 from src.agents.linear_agent import TetrisAgent
 from src.environments.env import TetrisEnv
 import datetime
-import os
 import multiprocessing as mp
 import matplotlib.pyplot as plt
 import psutil
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+from pathlib import Path
 # Đường dẫn
-PRETRAINED_WEIGHTS = 'E:\\HaoDevAI\\REL301m\\HaoNA_Assignment\\data\\weights\\best_weights.npy'
-LOG_DIR = "E:\\HaoDevAI\\REL301m\\HaoNA_Assignment\\data\\weights"
-PLOT_DIR = "E:\\HaoDevAI\\REL301m\\HaoNA_Assignment\\data\\plots"
+
+FILE_DIR = Path(__file__).parent.parent.parent
+WEIGHT_DIR = FILE_DIR / 'data' / 'weights'
+PLOT_DIR = FILE_DIR / 'data' / 'plots'
+LOG_DIR = FILE_DIR / 'data' / 'logs'
+
 
 # Các tham số ES
-POPULATION_SIZE = 30  # Số lượng cá thể (số mẫu nhiễu)
+PRETRAINED_WEIGHTS = WEIGHT_DIR / 'start_weights.npy'
+POPULATION_SIZE = 100  # Số lượng cá thể
 NUM_GAMES = 5  # Số game để đánh giá một cá thể
-MAX_MOVES = 1000  # Số nước đi tối đa trong mỗi game
-MAX_GENERATIONS = 30  # Số thế hệ huấn luyện ES (có thể tăng lên để đạt hiệu quả tốt hơn)
-SIGMA = 0.02  # Độ lệch chuẩn của nhiễu Gaussian
-ALPHA = 0.005  # Learning rate (tốc độ học)
+MAX_MOVES = 500  # Số nước đi tối đa trong mỗi game
+MAX_GENERATIONS = 10  # Số thế hệ huấn luyện ES
+SIGMA = 0.1  # Độ lệch chuẩn của nhiễu Gaussian
+ALPHA = 0.01  # Learning rate
 
 
 # Hàm mô phỏng trò chơi Tetris với bộ trọng số heuristic cho agent
@@ -106,6 +108,26 @@ def evolution_strategy():
 if __name__ == "__main__":
     print(f"CPU: {psutil.cpu_percent()}% | RAM: {psutil.virtual_memory().percent}%")
     print("Training in parallel...")
+    # Lưu lịch sử train
+    log_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_train_log.txt")
+    log_path = LOG_DIR / log_name
+    start_time = datetime.datetime.now()
+    training_info = f"""
+        --- THÔNG SỐ TRAINING ---
+        Time Start: {start_time.strftime("%Y-%m-%d %H:%M:%S")}
+        WEIGHTS: {PRETRAINED_WEIGHTS}
+        POPULATION_SIZE: {POPULATION_SIZE}
+        NUM_GAMES: {NUM_GAMES}
+        MAX_MOVES: {MAX_MOVES}
+        MAX_GENERATIONS: {MAX_GENERATIONS}
+        SIGMA: {SIGMA}
+        ALPHA: {ALPHA}
+
+        """
+    with open(log_path, "w", encoding="utf-8") as f:
+        f.write(training_info)
+
+    #training...
     best_params, best_fit, best_rewards, avg_rewards = evolution_strategy()
     print("\nTối ưu được tham số heuristic:")
     print(f"AGGREGATE_HEIGHT_WEIGHT = {best_params[0]:.6f}")
@@ -113,9 +135,29 @@ if __name__ == "__main__":
     print(f"HOLES_WEIGHT = {best_params[2]:.6f}")
     print(f"BUMPINESS_WEIGHT = {best_params[3]:.6f}")
     print(f"Fitness: {best_fit}")
+    #saving...
+    end_time = datetime.datetime.now()
+    training_results = f"""
+        --- KẾT QUẢ TRAINING ---
+        Time End: {end_time.strftime("%Y-%m-%d %H:%M:%S")}
+        Training Duration: {end_time - start_time}
+        Best Fitness: {best_fit}
+        Best Rewards per Generation: {best_rewards}
+        Average Rewards per Generation: {avg_rewards}
 
+        Final Heuristic Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = {best_params[0]:.6f}
+        COMPLETE_LINES_WEIGHT = {best_params[1]:.6f}
+        HOLES_WEIGHT = {best_params[2]:.6f}
+        BUMPINESS_WEIGHT = {best_params[3]:.6f}
+        """
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(training_results)
+
+    print(f"Training logs saved in {log_path}")
+    #Lưu weights
     save_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_best_weights.npy")
-    save_path = os.path.join(LOG_DIR, save_name)
+    save_path = WEIGHT_DIR / save_name
     np.save(save_path, best_params)
     print("Best weights saved at {}".format(save_path))
 
@@ -128,7 +170,12 @@ if __name__ == "__main__":
     plt.title('Evolution Strategy Training Progress')
     plt.legend()
     plt.grid(True)
-    fitness_plot_path = os.path.join(PLOT_DIR, "fitness_plot.png")
+    plot_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_fitness_plot.png")
+    fitness_plot_path = PLOT_DIR / plot_name
     plt.savefig(fitness_plot_path)
     plt.close()
     print(f"Fitness plot saved at {fitness_plot_path}")
+
+
+
+

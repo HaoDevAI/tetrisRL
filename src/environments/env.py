@@ -8,6 +8,7 @@ class TetrisEnv:
         self.current_piece = random_piece_generator()
         self.next_piece = random_piece_generator()
         self.score = 0
+        self.moves_played = 0
         self.game_over = False
 
     def clone(self):

@@ -1,0 +1,7 @@
+Simulation finished:
+Progress: 100/100
+Max Score: 1433
+Min Score: 35
+Average Score: 354.08
+Average moves: 922.09
+
