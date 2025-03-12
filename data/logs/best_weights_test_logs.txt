@@ -1,0 +1,49 @@
+Simulation finished:
+Progress: 0/0
+Max Score: 0
+Min Score: 0
+Average Score: 0.00
+Average moves: 0.00
+
+Simulation finished:
+Progress: 2/2
+Max Score: 240
+Min Score: 15
+Average Score: 127.50
+Average moves: 351.50
+
+Simulation finished:
+Progress: 10/10
+Max Score: 895
+Min Score: 20
+Average Score: 318.00
+Average moves: 829.40
+
+Simulation finished:
+Progress: 2/2
+Max Score: 1443
+Min Score: 293
+Average Score: 868.00
+Average moves: 2215.00
+
+Simulation finished:
+Progress: 2/2
+Max Score: 538
+Min Score: 282
+Average Score: 410.00
+Average moves: 1067.00
+
+Simulation finished:
+Progress: 0/1
+Max Score: 0
+Min Score: 0
+Average Score: 0.00
+Average moves: 0.00
+
+Simulation finished:
+Progress: 1/1
+Max Score: 923
+Min Score: 923
+Average Score: 923.00
+Average moves: 2351.00
+

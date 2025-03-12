@@ -1,12 +1,17 @@
 from src.environments.grid import Grid
-from src.environments.random_piece_generator import random_piece_generator
+from src.environments.random_piece_generator import *
 
 class TetrisEnv:
-    def __init__(self, rows=20, cols=10):
-        
+    def __init__(self, rows=20, cols=10,generator="random"):
+        self.generator = generator
         self.grid = Grid(rows, cols)
-        self.current_piece = random_piece_generator()
-        self.next_piece = random_piece_generator()
+        if self.generator == "random":
+            self.current_piece = random_piece_generator()
+            self.next_piece = random_piece_generator()
+        elif self.generator == "classic":
+            self.seven_bag_gen = seven_bag_random_generator()
+            self.current_piece = next(self.seven_bag_gen)
+            self.next_piece = next(self.seven_bag_gen)
         self.score = 0
         self.moves_played = 0
         self.game_over = False
@@ -17,11 +22,14 @@ class TetrisEnv:
         Lưu ý: Chúng ta giả định rằng Grid và Piece đã có hàm clone riêng.
         """
         new_env = TetrisEnv.__new__(TetrisEnv)
+        new_env.generator = self.generator
         new_env.grid = self.grid.clone()
         new_env.current_piece = self.current_piece.clone()
         new_env.next_piece = self.next_piece.clone()
         new_env.score = self.score
         new_env.game_over = self.game_over
+        if self.generator == "classic":
+            new_env.seven_bag_gen = self.seven_bag_gen
         return new_env
 
     def new_piece(self):
@@ -29,9 +37,14 @@ class TetrisEnv:
            Check if the new piece's starting position is valid; if not, end the game.
         """
         self.current_piece = self.next_piece
-        self.current_piece.x = 3  # Reset starting position
+
+        # Căn giữa: vị trí x = ((số cột lưới - độ rộng piece) / 2) điều chỉnh lại theo min_offset
+        self.current_piece.x = (self.grid.cols - self.current_piece.piece_width) // 2
         self.current_piece.y = 0
-        self.next_piece = random_piece_generator()
+        if self.generator == "random":
+            self.next_piece = random_piece_generator()
+        elif self.generator == "classic":
+            self.next_piece = next(self.seven_bag_gen)
 
         if not self.grid.is_valid_position(self.current_piece):
             self.game_over = True

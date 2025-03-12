@@ -134,6 +134,16 @@ class Piece:
         self.x = 3  # Starting X position (may vary)
         self.y = 0  # Starting Y position
 
+    @property
+    def piece_width(self):
+        rel_cells = [j for i, row in enumerate(self.matrix)
+                     for j, val in enumerate(row) if val]
+        if not rel_cells:
+            return 0
+        min_offset = min(rel_cells)
+        max_offset = max(rel_cells)
+        return max_offset - min_offset + 1
+
     def rotate(self):
         """Rotate the piece clockwise."""
         self.rotation_index = (self.rotation_index + 1) % len(self.rotations)

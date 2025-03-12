@@ -12,7 +12,7 @@ import yaml
 FILE_DIR = Path(__file__).parent.parent
 CONFIG = FILE_DIR / 'game_config.yaml'
 WEIGHTS_DIR = FILE_DIR / 'data' / 'weights'
-WEIGHTS = WEIGHTS_DIR / '2025_03_11_14_39_best_weights.npy'
+WEIGHTS = WEIGHTS_DIR / 'best_weights.npy'
 LOG_DIR = FILE_DIR / 'data' / 'logs'
 log_name = WEIGHTS.stem.replace("_best_weights", "")+ "_test_logs.txt"
 log_path = LOG_DIR / log_name
@@ -22,21 +22,22 @@ with open(CONFIG, 'r') as f:
     config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
 
 #Game environment config
-ROWS = config['rows']
-COLUMNS = config['cols']
-BLOCK_SIZE = config['block_size']
+PIECE_GENERATOR = config['generator']
 
 # Game UI config
 GAME_FPS = config["fps"]
 AGENT_DELAY = config["delay"]
 DROP_INTERVAL = config["drop_interval"]
+ROWS = config['rows']
+COLUMNS = config['cols']
+BLOCK_SIZE = config['block_size']
 WIDTH = COLUMNS * BLOCK_SIZE
 HEIGHT = ROWS * BLOCK_SIZE
 PANEL_WIDTH = 8 * BLOCK_SIZE
 PANEL_MARGIN = 10
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
-NUM_GAMES = 0 # Background games for agent's evaluation
+NUM_GAMES = 1 # Background games for agent's evaluation
 
 # Colors
 BACKGROUND_COLOR = config["background"]
@@ -216,7 +217,7 @@ def run_background_games():
 
     # Chạy simulation cho NUM_GAMES game mà không vẽ giao diện
     for game_index in range(NUM_GAMES):
-        env = TetrisEnv(ROWS, COLUMNS)
+        env = TetrisEnv(ROWS, COLUMNS,generator=PIECE_GENERATOR)
         agent = TetrisAgent(env, load_weights)
         game_active = True
 
@@ -257,7 +258,7 @@ def main():
     # Game UI: chơi 1 màn để quan sát
     running = True
     while running:
-        env = TetrisEnv(ROWS, COLUMNS)
+        env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR)
         load_weights = np.load(WEIGHTS)
         #load_weights = np.array([-0.5, 0.5, -0.5, -0.5])
         agent = TetrisAgent(env, load_weights)

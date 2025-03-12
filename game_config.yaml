@@ -1,5 +1,5 @@
 #Grid config:
-rows: 20
+rows: 22
 cols: 10
 block_size: 30
 
@@ -9,7 +9,7 @@ delay: 0.05
 drop_interval: 50
 
 #Environment config
-generator:
+generator: 'classic'
 
 #Color config
 background: [245, 245, 245]

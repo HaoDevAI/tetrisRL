@@ -4,6 +4,8 @@ from src.environments.env import TetrisEnv
 from pathlib import Path
 import yaml
 
+from test.test_agent import PIECE_GENERATOR
+
 # File path
 FILE_DIR = Path(__file__).parent.parent
 CONFIG = FILE_DIR / 'game_config.yaml'
@@ -13,14 +15,14 @@ with open(CONFIG, 'r') as f:
     config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
 
 #Game environment config
-ROWS = config['rows']
-COLUMNS = config['cols']
-BLOCK_SIZE = config['block_size']
+PIECE_GENERATOR = config["generator"]
 
 # Game UI config
 GAME_FPS = config["fps"]
-AGENT_DELAY = config["delay"]
 DROP_INTERVAL = config["drop_interval"]
+ROWS = config['rows']
+COLUMNS = config['cols']
+BLOCK_SIZE = config['block_size']
 WIDTH = COLUMNS * BLOCK_SIZE
 HEIGHT = ROWS * BLOCK_SIZE
 PANEL_WIDTH = 6 * BLOCK_SIZE
@@ -100,7 +102,7 @@ def draw_ghost_piece(screen, ghost_piece):
     """
     Vẽ ghost piece với hiệu ứng mờ tại vị trí hạ cánh của khối.
     """
-    # Tạo ghost_color bằng cách sử dụng cùng màu của khối nhưng với alpha thấp (ví dụ 100)
+    # Tạo ghost_color bằng cách sử dụng cùng màu của khối nhưng với alpha thấp
     ghost_color = (ghost_piece.color[0], ghost_piece.color[1], ghost_piece.color[2], 100)
     for (x, y) in ghost_piece.get_cells():
         # Tạo một surface nhỏ cho mỗi ô với chế độ alpha
@@ -203,7 +205,7 @@ def main():
 
     running = True
     while running:
-        env = TetrisEnv()
+        env = TetrisEnv(ROWS, COLUMNS,PIECE_GENERATOR)
         drop_interval = 500
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)
