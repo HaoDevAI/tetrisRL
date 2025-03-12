@@ -84,6 +84,17 @@ class TetrisEnv:
             pass
         self.drop_piece()
 
+    def get_ghost_piece(self):
+        """
+        Tạo một bản sao của khối hiện tại và di chuyển nó xuống cho đến khi không hợp lệ,
+        sau đó lùi lại 1 bước để xác định vị trí mà khối sẽ rơi nếu hard drop.
+        """
+        ghost = self.current_piece.clone()
+        while self.grid.is_valid_position(ghost):
+            ghost.y += 1
+        ghost.y -= 1  # Lùi lại 1 bước vì bước cuối cùng không hợp lệ
+        return ghost
+
     def update(self):
         """
         Main update method that should be called on each tick.

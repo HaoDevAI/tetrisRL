@@ -6,7 +6,18 @@ block_size: 30
 #UI config
 fps: 60
 delay: 0.05
-drop_interval: 500
+drop_interval: 50
 
 #Environment config
 generator:
+
+#Color config
+background: [245, 245, 245]
+border: [50, 50, 50]
+border_w: 1
+grid: [220, 220, 220]
+grid_w: 1
+panel: [200, 200, 200]
+text: [50, 50, 50]
+button_bg: [200, 200, 200]
+button_hover: [100, 100, 100]

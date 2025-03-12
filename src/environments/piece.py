@@ -111,11 +111,22 @@ SHAPES = {
         ]
     }
 
+SHAPES_COLORS = {
+    "I": (102, 204, 204),   #cyan
+    "O": (255, 255, 153),   #yellow
+    "T": (204, 153, 255),   #purple
+    "S": (153, 255, 153),   #green
+    "Z": (255, 153, 153),   #red
+    "J": (102, 153, 255),   #blue
+    "L": (255, 178, 102)    # orange
+}
+
 class Piece:
     def __init__(self, shape):
         if shape not in SHAPES:
             raise ValueError(f"Shape {shape} is not defined.")
         self.shape = shape
+        self.color = SHAPES_COLORS[shape]
         self.rotations = SHAPES[shape]
         self.rotation_index = 0
         self.matrix = [row[:] for row in self.rotations[self.rotation_index]]

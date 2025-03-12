@@ -32,21 +32,22 @@ AGENT_DELAY = config["delay"]
 DROP_INTERVAL = config["drop_interval"]
 WIDTH = COLUMNS * BLOCK_SIZE
 HEIGHT = ROWS * BLOCK_SIZE
-PANEL_WIDTH = 6 * BLOCK_SIZE
-PANEL_MARGIN = 12
+PANEL_WIDTH = 8 * BLOCK_SIZE
+PANEL_MARGIN = 10
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
 NUM_GAMES = 0 # Background games for agent's evaluation
 
 # Colors
-BACKGROUND_COLOR = (0, 0, 0)
-GRID_COLOR = (40, 40, 40)
-PIECE_COLOR = (255, 0, 0)
-PLACED_COLOR = (0, 255, 0)
-PANEL_BG_COLOR = (50, 50, 50)
-TEXT_COLOR = (255, 255, 255)
-BUTTON_BG_COLOR = (70, 70, 70)
-BUTTON_HOVER_COLOR = (100, 100, 100)
+BACKGROUND_COLOR = config["background"]
+BORDER_COLOR = config["border"]
+BORDER_WIDTH = config["border_w"]
+GRID_COLOR = config["grid"]
+GRID_WIDTH = config["grid_w"]
+PANEL_BG_COLOR = config["panel"]
+TEXT_COLOR = config["text"]
+BUTTON_BG_COLOR = config["button_bg"]
+BUTTON_HOVER_COLOR = config["button_hover"]
 
 # Global variables for background simulation
 max_background_score = 0
@@ -57,18 +58,25 @@ games_played = 0
 simulation_finished = False
 score_lock = threading.Lock()
 
+
+def draw_block_3d(screen, color, x, y):
+    rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+    pygame.draw.rect(screen, color, rect)
+
+    # Draw border
+    pygame.draw.rect(screen, BORDER_COLOR, rect, BORDER_WIDTH)
+
 def draw_grid(screen, board):
     for y in range(ROWS):
         for x in range(COLUMNS):
             rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-            pygame.draw.rect(screen, GRID_COLOR, rect, 1)
+            pygame.draw.rect(screen, GRID_COLOR, rect, GRID_WIDTH)
             if board[y][x]:
-                pygame.draw.rect(screen, PLACED_COLOR, rect)
+                draw_block_3d(screen, board[y][x], x, y)
 
 def draw_piece(screen, cells, color):
     for (x, y) in cells:
-        rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-        pygame.draw.rect(screen, color, rect)
+        draw_block_3d(screen, color, x, y)
 
 def draw_panel(screen, gm, font):
     panel_rect = pygame.Rect(WIDTH + PANEL_MARGIN, PANEL_MARGIN, PANEL_WIDTH, HEIGHT - PANEL_MARGIN * 2)
@@ -91,7 +99,7 @@ def draw_panel(screen, gm, font):
         for j, val in enumerate(row):
             if val:
                 rect = pygame.Rect(offset_x + j * BLOCK_SIZE, offset_y + i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                pygame.draw.rect(screen, PIECE_COLOR, rect)
+                pygame.draw.rect(screen, temp_piece.color, rect)
 
     # Hiển thị score của game UI hiện tại
     score_text = font.render(f"Score: {gm.score}", True, TEXT_COLOR)
@@ -130,10 +138,12 @@ def draw_panel(screen, gm, font):
     min_text = font.render(f"Min: {bg_min}", True, TEXT_COLOR)
     screen.blit(min_text, (panel_rect.x + 10, panel_rect.y + 300))
 
+
+
 def check_play_again(screen, font, final_score):
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     overlay.set_alpha(200)
-    overlay.fill((0, 0, 0))
+    overlay.fill(BACKGROUND_COLOR)
     screen.blit(overlay, (0, 0))
 
     game_over_text = font.render("Game Over!", True, TEXT_COLOR)
@@ -277,7 +287,7 @@ def main():
             # Vẽ UI game
             screen.fill(BACKGROUND_COLOR)
             draw_grid(screen, env.grid.board)
-            draw_piece(screen, env.current_piece.get_cells(), PIECE_COLOR)
+            draw_piece(screen, env.current_piece.get_cells(), env.current_piece.color)
             draw_panel(screen, env, font)
             pygame.display.flip()
 

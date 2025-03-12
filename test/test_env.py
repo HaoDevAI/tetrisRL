@@ -28,15 +28,28 @@ PANEL_MARGIN = 12
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
 
-# Colors (R, G, B)
-BACKGROUND_COLOR = (0, 0, 0)
-GRID_COLOR = (40, 40, 40)
-PIECE_COLOR = (255, 0, 0)    # Color for the falling piece
-PLACED_COLOR = (0, 255, 0)   # Color for the placed pieces
-PANEL_BG_COLOR = (50, 50, 50)
-TEXT_COLOR = (255, 255, 255)
-BUTTON_BG_COLOR = (70, 70, 70)
-BUTTON_HOVER_COLOR = (100, 100, 100)
+# Colors
+BACKGROUND_COLOR = config["background"]
+BORDER_COLOR = config["border"]
+BORDER_WIDTH = config["border_w"]
+GRID_COLOR = config["grid"]
+GRID_WIDTH = config["grid_w"]
+PANEL_BG_COLOR = config["panel"]
+TEXT_COLOR = config["text"]
+BUTTON_BG_COLOR = config["button_bg"]
+BUTTON_HOVER_COLOR = config["button_hover"]
+
+def draw_block_3d(screen, color, x, y):
+    rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
+    pygame.draw.rect(screen, color, rect)
+
+    # Draw border
+    pygame.draw.rect(screen, BORDER_COLOR, rect, BORDER_WIDTH)
+
+def draw_piece(screen, cells, color):
+    """Draw a piece using the provided cell coordinates and color."""
+    for (x, y) in cells:
+        draw_block_3d(screen, color, x, y)
 
 def draw_grid(screen, board):
     """Draw the grid with placed blocks."""
@@ -47,13 +60,7 @@ def draw_grid(screen, board):
             pygame.draw.rect(screen, GRID_COLOR, rect, 1)
             # If there is a placed block, fill it in
             if board[y][x]:
-                pygame.draw.rect(screen, PLACED_COLOR, rect)
-
-def draw_piece(screen, cells, color):
-    """Draw a piece using the provided cell coordinates and color."""
-    for (x, y) in cells:
-        rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-        pygame.draw.rect(screen, color, rect)
+                draw_block_3d(screen, board[y][x], x, y)
 
 def draw_panel(screen, gm, font):
     """Draw the side panel showing the next piece and lines cleared."""
@@ -83,11 +90,23 @@ def draw_panel(screen, gm, font):
         for j, val in enumerate(row):
             if val:
                 rect = pygame.Rect(offset_x + j * BLOCK_SIZE, offset_y + i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                pygame.draw.rect(screen, PIECE_COLOR, rect)
+                pygame.draw.rect(screen, temp_piece.color, rect)
 
     # Display "Lines Cleared" (score)
     score_text = font.render(f"Lines: {gm.score}", True, TEXT_COLOR)
     screen.blit(score_text, (panel_rect.x + 10, panel_rect.y + 150))
+
+def draw_ghost_piece(screen, ghost_piece):
+    """
+    Vẽ ghost piece với hiệu ứng mờ tại vị trí hạ cánh của khối.
+    """
+    # Tạo ghost_color bằng cách sử dụng cùng màu của khối nhưng với alpha thấp (ví dụ 100)
+    ghost_color = (ghost_piece.color[0], ghost_piece.color[1], ghost_piece.color[2], 100)
+    for (x, y) in ghost_piece.get_cells():
+        # Tạo một surface nhỏ cho mỗi ô với chế độ alpha
+        ghost_cell = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE), pygame.SRCALPHA)
+        ghost_cell.fill(ghost_color)
+        screen.blit(ghost_cell, (x * BLOCK_SIZE, y * BLOCK_SIZE))
 
 def check_play_again(screen, font, final_score):
     """Display a game over screen with score and Yes/No buttons for replay.
@@ -96,7 +115,7 @@ def check_play_again(screen, font, final_score):
     # Create a semi-transparent overlay
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     overlay.set_alpha(200)
-    overlay.fill((0, 0, 0))
+    overlay.fill(BACKGROUND_COLOR)
     screen.blit(overlay, (0, 0))
 
     # Display final score and message
@@ -214,7 +233,9 @@ def main():
 
             screen.fill(BACKGROUND_COLOR)
             draw_grid(screen, env.grid.board)
-            draw_piece(screen, env.current_piece.get_cells(), PIECE_COLOR)
+            ghost_piece = env.get_ghost_piece()
+            draw_ghost_piece(screen, ghost_piece)
+            draw_piece(screen, env.current_piece.get_cells(), env.current_piece.color)
             draw_panel(screen, env, font)
             pygame.display.flip()
 

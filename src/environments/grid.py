@@ -24,7 +24,7 @@ class Grid:
         """
         for x, y in piece.get_cells():
             if 0 <= y < self.rows and 0 <= x < self.cols:
-                self.board[y][x] = 1
+                self.board[y][x] = piece.color
 
     def clear_lines(self):
         """
