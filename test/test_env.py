@@ -1,17 +1,30 @@
 import sys
 import pygame
 from src.environments.env import TetrisEnv
+from pathlib import Path
+import yaml
 
-# Configuration
-BLOCK_SIZE = 30  # Size of one grid cell in pixels
-COLUMNS = 10
-ROWS = 20
+# File path
+FILE_DIR = Path(__file__).parent.parent
+CONFIG = FILE_DIR / 'game_config.yaml'
+
+#Load game config
+with open(CONFIG, 'r') as f:
+    config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
+
+#Game environment config
+ROWS = config['rows']
+COLUMNS = config['cols']
+BLOCK_SIZE = config['block_size']
+
+# Game UI config
+GAME_FPS = config["fps"]
+AGENT_DELAY = config["delay"]
+DROP_INTERVAL = config["drop_interval"]
 WIDTH = COLUMNS * BLOCK_SIZE
 HEIGHT = ROWS * BLOCK_SIZE
-
-# Panel configuration for next piece and score
 PANEL_WIDTH = 6 * BLOCK_SIZE
-PANEL_MARGIN = 10
+PANEL_MARGIN = 12
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
 

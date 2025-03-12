@@ -5,3 +5,10 @@ Min Score: 35
 Average Score: 354.08
 Average moves: 922.09
 
+Simulation finished:
+Progress: 0/0
+Max Score: 0
+Min Score: 0
+Average Score: 0.00
+Average moves: 0.00
+

@@ -10,6 +10,20 @@ def random_piece_generator():
     shape = random.choice(SHAPE_KEYS)
     return Piece(shape)
 
+def generate_7_bag():
+    """Sinh ngẫu nhiên một danh sách chứa cả 7 loại tetromino."""
+    tetrominos = ['I', 'J', 'L', 'O', 'S', 'T', 'Z']
+    random.shuffle(tetrominos)
+    return tetrominos
+
+def seven_bag_random_generator():
+    """Trình sinh khối theo thuật toán 7-bag."""
+    bag = []
+    while True:
+        if not bag:  # Nếu túi trống, tạo một túi mới
+            bag = generate_7_bag()
+        yield bag.pop()  # Lấy từng khối một từ túi
+
 # Example usage:
 if __name__ == "__main__":
     piece = random_piece_generator()

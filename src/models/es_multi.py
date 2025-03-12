@@ -7,22 +7,29 @@ import multiprocessing as mp
 import matplotlib.pyplot as plt
 import psutil
 from pathlib import Path
-# Đường dẫn
+import yaml
 
+
+
+# Đường dẫn
 FILE_DIR = Path(__file__).parent.parent.parent
 WEIGHT_DIR = FILE_DIR / 'data' / 'weights'
 PLOT_DIR = FILE_DIR / 'data' / 'plots'
 LOG_DIR = FILE_DIR / 'data' / 'logs'
+CONFIG = FILE_DIR / 'train_config.yml'
 
+#Load train config
+with open(CONFIG, 'r') as f:
+    config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
 
 # Các tham số ES
-PRETRAINED_WEIGHTS = WEIGHT_DIR / 'start_weights.npy'
-POPULATION_SIZE = 100  # Số lượng cá thể
-NUM_GAMES = 5  # Số game để đánh giá một cá thể
-MAX_MOVES = 500  # Số nước đi tối đa trong mỗi game
-MAX_GENERATIONS = 10  # Số thế hệ huấn luyện ES
-SIGMA = 0.1  # Độ lệch chuẩn của nhiễu Gaussian
-ALPHA = 0.01  # Learning rate
+PRETRAINED_WEIGHTS = WEIGHT_DIR / config['weights']
+POPULATION_SIZE = config["population"]
+NUM_GAMES = config["games"]
+MAX_MOVES = config["moves"]
+MAX_GENERATIONS = config["generations"]
+SIGMA = config["sigma"]
+ALPHA = config["lr"]
 
 
 # Hàm mô phỏng trò chơi Tetris với bộ trọng số heuristic cho agent
