@@ -13,17 +13,21 @@ import yaml
 
 # Đường dẫn
 FILE_DIR = Path(__file__).parent.parent.parent
-WEIGHT_DIR = FILE_DIR / 'data' / 'weights'
-PLOT_DIR = FILE_DIR / 'data' / 'plots'
-LOG_DIR = FILE_DIR / 'data' / 'logs'
-CONFIG = FILE_DIR / 'train_config.yml'
+LOG_DIR = FILE_DIR / 'logs'
+start_time = datetime.datetime.now()
+CHECKPOINT_DIR = LOG_DIR / start_time.strftime("%Y_%m_%d_%H_%M")
+CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
+TRAIN_LOGS_PATH = CHECKPOINT_DIR / 'training_log.txt'
+PLOT_PATH = CHECKPOINT_DIR / 'fitness_plot.png'
+SAVE_WEIGHTS_PATH = CHECKPOINT_DIR / 'weights.npy'
+CONFIG = FILE_DIR / 'train_config.yaml'
 
 #Load train config
-with open(CONFIG, 'r') as f:
+with open(CONFIG, 'r', encoding='utf-8') as f:
     config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
 
 # Các tham số ES
-PRETRAINED_WEIGHTS = WEIGHT_DIR / config['weights']
+PRETRAINED_WEIGHTS = LOG_DIR / config['check_point'] / "weights.npy"
 POPULATION_SIZE = config["population"]
 NUM_GAMES = config["games"]
 MAX_MOVES = config["moves"]
@@ -116,9 +120,7 @@ if __name__ == "__main__":
     print(f"CPU: {psutil.cpu_percent()}% | RAM: {psutil.virtual_memory().percent}%")
     print("Training in parallel...")
     # Lưu lịch sử train
-    log_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_train_log.txt")
-    log_path = LOG_DIR / log_name
-    start_time = datetime.datetime.now()
+
     training_info = f"""
         --- THÔNG SỐ TRAINING ---
         Time Start: {start_time.strftime("%Y-%m-%d %H:%M:%S")}
@@ -131,7 +133,7 @@ if __name__ == "__main__":
         ALPHA: {ALPHA}
 
         """
-    with open(log_path, "w", encoding="utf-8") as f:
+    with open(TRAIN_LOGS_PATH, "w", encoding="utf-8") as f:
         f.write(training_info)
 
     #training...
@@ -149,8 +151,6 @@ if __name__ == "__main__":
         Time End: {end_time.strftime("%Y-%m-%d %H:%M:%S")}
         Training Duration: {end_time - start_time}
         Best Fitness: {best_fit}
-        Best Rewards per Generation: {best_rewards}
-        Average Rewards per Generation: {avg_rewards}
 
         Final Heuristic Parameters:
         AGGREGATE_HEIGHT_WEIGHT = {best_params[0]:.6f}
@@ -158,15 +158,13 @@ if __name__ == "__main__":
         HOLES_WEIGHT = {best_params[2]:.6f}
         BUMPINESS_WEIGHT = {best_params[3]:.6f}
         """
-    with open(log_path, "a", encoding="utf-8") as f:
+    with open(TRAIN_LOGS_PATH, "a", encoding="utf-8") as f:
         f.write(training_results)
 
-    print(f"Training logs saved in {log_path}")
+    print(f"Training logs saved in {TRAIN_LOGS_PATH}")
     #Lưu weights
-    save_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_best_weights.npy")
-    save_path = WEIGHT_DIR / save_name
-    np.save(save_path, best_params)
-    print("Best weights saved at {}".format(save_path))
+    np.save(SAVE_WEIGHTS_PATH, best_params)
+    print("Best weights saved at {}".format(SAVE_WEIGHTS_PATH))
 
     # Lưu biểu đồ plot fitness theo generation
     plt.figure(figsize=(10, 5))
@@ -177,11 +175,9 @@ if __name__ == "__main__":
     plt.title('Evolution Strategy Training Progress')
     plt.legend()
     plt.grid(True)
-    plot_name = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_fitness_plot.png")
-    fitness_plot_path = PLOT_DIR / plot_name
-    plt.savefig(fitness_plot_path)
+    plt.savefig(PLOT_PATH)
     plt.close()
-    print(f"Fitness plot saved at {fitness_plot_path}")
+    print(f"Fitness plot saved at {PLOT_PATH}")
 
 
 

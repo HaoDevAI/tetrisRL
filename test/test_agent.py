@@ -8,14 +8,16 @@ from src.agents.linear_agent import TetrisAgent
 from pathlib import Path
 import yaml
 
+AGENT = "2025_03_13_12_24"
+
 # File path
 FILE_DIR = Path(__file__).parent.parent
 CONFIG = FILE_DIR / 'game_config.yaml'
-WEIGHTS_DIR = FILE_DIR / 'data' / 'weights'
-WEIGHTS = WEIGHTS_DIR / 'best_weights.npy'
-LOG_DIR = FILE_DIR / 'data' / 'logs'
-log_name = WEIGHTS.stem.replace("_best_weights", "")+ "_test_logs.txt"
-log_path = LOG_DIR / log_name
+AGENT_DIR = FILE_DIR / 'logs' / AGENT
+WEIGHTS_PATH = AGENT_DIR / 'weights.npy'
+TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
+
+SAVE_MODE = True
 
 #Load game config
 with open(CONFIG, 'r') as f:
@@ -37,7 +39,7 @@ PANEL_WIDTH = 8 * BLOCK_SIZE
 PANEL_MARGIN = 10
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
-NUM_GAMES = 1 # Background games for agent's evaluation
+NUM_GAMES = 10 # Background games for agent's evaluation
 
 # Colors
 BACKGROUND_COLOR = config["background"]
@@ -213,7 +215,7 @@ def check_play_again(screen, font, final_score):
 
 def run_background_games():
     global max_background_score, min_background_score, total_background_score, total_background_moves, games_played, simulation_finished
-    load_weights = np.load(WEIGHTS)
+    load_weights = np.load(WEIGHTS_PATH)
 
     # Chạy simulation cho NUM_GAMES game mà không vẽ giao diện
     for game_index in range(NUM_GAMES):
@@ -259,7 +261,7 @@ def main():
     running = True
     while running:
         env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR)
-        load_weights = np.load(WEIGHTS)
+        load_weights = np.load(WEIGHTS_PATH)
         #load_weights = np.array([-0.5, 0.5, -0.5, -0.5])
         agent = TetrisAgent(env, load_weights)
         pygame.time.set_timer(pygame.USEREVENT + 1, DROP_INTERVAL)
@@ -320,10 +322,10 @@ def main():
 
         # In ra terminal
         print(logs)
-
-        # Ghi vào file test_log.txt
-        with open(log_path, "a") as log_file:
-            log_file.write(logs + "\n")
+        if SAVE_MODE:
+            # Ghi vào file test_log.txt
+            with open(TEST_LOGS_PATH, "a") as log_file:
+                log_file.write(logs + "\n")
 
 if __name__ == "__main__":
     main()

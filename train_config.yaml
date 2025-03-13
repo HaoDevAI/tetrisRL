@@ -1,9 +1,8 @@
 #----Training configuration----
-weights: start_weights.npy
+check_point: 'base'
 population: 100     # Số lượng cá thể
 games: 5            # Số game để đánh giá một cá thể
 moves: 500          # Số nước đi tối đa trong mỗi game
-generation: 10      # Số thế hệ huấn luyện ES
+generations: 20      # Số thế hệ huấn luyện ES
 sigma: 0.1          # Độ lệch chuẩn của nhiễu Gaussian
 lr: 0.01            # Learning rate
-logs: 'data'        # Log directory
