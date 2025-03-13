@@ -16,6 +16,7 @@ with open(CONFIG, 'r') as f:
 
 #Game environment config
 PIECE_GENERATOR = config["generator"]
+RANDOM_SEED = config["seed"]
 
 # Game UI config
 GAME_FPS = config["fps"]
@@ -205,7 +206,7 @@ def main():
 
     running = True
     while running:
-        env = TetrisEnv(ROWS, COLUMNS,PIECE_GENERATOR)
+        env = TetrisEnv(ROWS, COLUMNS,PIECE_GENERATOR,RANDOM_SEED)
         drop_interval = 500
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)

@@ -10,6 +10,7 @@ drop_interval: 50
 
 #Environment config
 generator: 'classic'
+seed: 42
 
 #Color config
 background: [245, 245, 245]

@@ -25,6 +25,7 @@ with open(CONFIG, 'r') as f:
 
 #Game environment config
 PIECE_GENERATOR = config['generator']
+RANDOM_SEED = config['seed']
 
 # Game UI config
 GAME_FPS = config["fps"]
@@ -219,7 +220,7 @@ def run_background_games():
 
     # Chạy simulation cho NUM_GAMES game mà không vẽ giao diện
     for game_index in range(NUM_GAMES):
-        env = TetrisEnv(ROWS, COLUMNS,generator=PIECE_GENERATOR)
+        env = TetrisEnv(ROWS, COLUMNS,generator=PIECE_GENERATOR, seed= RANDOM_SEED)
         agent = TetrisAgent(env, load_weights)
         game_active = True
 
@@ -260,7 +261,7 @@ def main():
     # Game UI: chơi 1 màn để quan sát
     running = True
     while running:
-        env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR)
+        env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR, seed= RANDOM_SEED)
         load_weights = np.load(WEIGHTS_PATH)
         #load_weights = np.array([-0.5, 0.5, -0.5, -0.5])
         agent = TetrisAgent(env, load_weights)

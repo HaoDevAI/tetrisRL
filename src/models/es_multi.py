@@ -9,7 +9,7 @@ import psutil
 from pathlib import Path
 import yaml
 
-
+from test.test_env import PIECE_GENERATOR
 
 # Đường dẫn
 FILE_DIR = Path(__file__).parent.parent.parent
@@ -20,20 +20,29 @@ CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_LOGS_PATH = CHECKPOINT_DIR / 'training_log.txt'
 PLOT_PATH = CHECKPOINT_DIR / 'fitness_plot.png'
 SAVE_WEIGHTS_PATH = CHECKPOINT_DIR / 'weights.npy'
-CONFIG = FILE_DIR / 'src' / 'config' /'train_config.yaml'
+TRAIN_CONFIG = FILE_DIR / 'src' / 'config' /'train_config.yaml'
+GAME_CONFIG = FILE_DIR / 'src' / 'config' /'game_config.yaml'
 
 #Load train config
-with open(CONFIG, 'r', encoding='utf-8') as f:
-    config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
+with open(TRAIN_CONFIG, 'r', encoding='utf-8') as f:
+    train_config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
+with open(GAME_CONFIG, 'r', encoding='utf-8') as f:
+    game_config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
+
+#Game config
+ROWS = game_config['rows']
+COLS = game_config['cols']
+PIECE_GENERATOR = game_config['generator']
+RANDOM_SEED = game_config['seed']
 
 # Các tham số ES
-PRETRAINED_WEIGHTS = LOG_DIR / config['check_point'] / "weights.npy"
-POPULATION_SIZE = config["population"]
-NUM_GAMES = config["games"]
-MAX_MOVES = config["moves"]
-MAX_GENERATIONS = config["generations"]
-SIGMA = config["sigma"]
-ALPHA = config["lr"]
+PRETRAINED_WEIGHTS = LOG_DIR / train_config['check_point'] / "weights.npy"
+POPULATION_SIZE = train_config["population"]
+NUM_GAMES = train_config["games"]
+MAX_MOVES = train_config["moves"]
+MAX_GENERATIONS = train_config["generations"]
+SIGMA = train_config["sigma"]
+ALPHA = train_config["lr"]
 
 
 # Hàm mô phỏng trò chơi Tetris với bộ trọng số heuristic cho agent
@@ -43,7 +52,7 @@ def simulate_tetris_game(weights):
     Trả về số dòng cleared (score) của game.
     """
     # Khởi tạo môi trường và agent (lưu ý: TetrisEnv và TetrisAgent cần được cài đặt phù hợp)
-    env = TetrisEnv()
+    env = TetrisEnv(rows=ROWS, cols=COLS,generator=PIECE_GENERATOR,seed=RANDOM_SEED)
     agent = TetrisAgent(env, weights)
     moves = 0
 
