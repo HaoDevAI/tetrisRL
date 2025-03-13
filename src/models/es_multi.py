@@ -20,7 +20,7 @@ CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
 TRAIN_LOGS_PATH = CHECKPOINT_DIR / 'training_log.txt'
 PLOT_PATH = CHECKPOINT_DIR / 'fitness_plot.png'
 SAVE_WEIGHTS_PATH = CHECKPOINT_DIR / 'weights.npy'
-CONFIG = FILE_DIR / 'train_config.yaml'
+CONFIG = FILE_DIR / 'src' / 'config' /'train_config.yaml'
 
 #Load train config
 with open(CONFIG, 'r', encoding='utf-8') as f:
@@ -146,10 +146,12 @@ if __name__ == "__main__":
     print(f"Fitness: {best_fit}")
     #saving...
     end_time = datetime.datetime.now()
+    duration = end_time - start_time
+    formatted_duration = str(duration).split('.')[0]
     training_results = f"""
         --- KẾT QUẢ TRAINING ---
         Time End: {end_time.strftime("%Y-%m-%d %H:%M:%S")}
-        Training Duration: {end_time - start_time}
+        Training Duration: {formatted_duration}
         Best Fitness: {best_fit}
 
         Final Heuristic Parameters:

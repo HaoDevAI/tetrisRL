@@ -8,7 +8,7 @@ from test.test_agent import PIECE_GENERATOR
 
 # File path
 FILE_DIR = Path(__file__).parent.parent
-CONFIG = FILE_DIR / 'game_config.yaml'
+CONFIG = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 
 #Load game config
 with open(CONFIG, 'r') as f:

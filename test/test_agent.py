@@ -12,7 +12,7 @@ AGENT = "2025_03_13_12_24"
 
 # File path
 FILE_DIR = Path(__file__).parent.parent
-CONFIG = FILE_DIR / 'game_config.yaml'
+CONFIG = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT
 WEIGHTS_PATH = AGENT_DIR / 'weights.npy'
 TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
