@@ -140,6 +140,8 @@ if __name__ == "__main__":
         MAX_GENERATIONS: {MAX_GENERATIONS}
         SIGMA: {SIGMA}
         ALPHA: {ALPHA}
+        GAME_MODE: {PIECE_GENERATOR}
+        SEED: {RANDOM_SEED}
 
         """
     with open(TRAIN_LOGS_PATH, "w", encoding="utf-8") as f:
