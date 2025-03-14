@@ -1,8 +1,9 @@
 #----Training configuration----
-check_point: 'base'
-population: 100     # Số lượng cá thể
-games: 5            # Số game để đánh giá một cá thể
-moves: 500          # Số nước đi tối đa trong mỗi game
-generations: 20      # Số thế hệ huấn luyện ES
-sigma: 0.1          # Độ lệch chuẩn của nhiễu Gaussian
-lr: 0.01            # Learning rate
+check_point: 'ref'
+model: "best"
+population: 30     # Số lượng cá thể
+games: 25           # Số game để đánh giá một cá thể
+moves: 4000         # Số nước đi tối đa trong mỗi game
+generations: 10     # Số thế hệ huấn luyện ES
+sigma: 0.03         # Độ lệch chuẩn của nhiễu Gaussian
+lr: 0.001            # Learning rate

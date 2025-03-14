@@ -8,16 +8,16 @@ from src.agents.linear_agent import TetrisAgent
 from pathlib import Path
 import yaml
 
-AGENT = "2025_03_13_12_24"
-
+AGENT = "ref"
+VERSION = "best"
 # File path
 FILE_DIR = Path(__file__).parent.parent
 CONFIG = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT
-WEIGHTS_PATH = AGENT_DIR / 'weights.npy'
+WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
 TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
 
-SAVE_MODE = True
+SAVE_MODE = False
 
 #Load game config
 with open(CONFIG, 'r') as f:
@@ -40,7 +40,7 @@ PANEL_WIDTH = 8 * BLOCK_SIZE
 PANEL_MARGIN = 10
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
-NUM_GAMES = 10 # Background games for agent's evaluation
+NUM_GAMES = 0 # Background games for agent's evaluation
 
 # Colors
 BACKGROUND_COLOR = config["background"]
@@ -56,6 +56,7 @@ BUTTON_HOVER_COLOR = config["button_hover"]
 # Global variables for background simulation
 max_background_score = 0
 min_background_score = float('inf')
+max_background_moves = 0
 total_background_score = 0
 total_background_moves = 0
 games_played = 0
@@ -113,6 +114,7 @@ def draw_panel(screen, gm, font):
     with score_lock:
         bg_max = max_background_score
         bg_min = min_background_score if games_played > 0 else 0
+        bg_max_moves = max_background_moves
         progress = games_played
         avg_score = total_background_score / games_played if games_played > 0 else 0
         avg_moves = total_background_moves / games_played if games_played > 0 else 0
@@ -124,7 +126,7 @@ def draw_panel(screen, gm, font):
 
     # Hiển thị số game đã chạy / NUM_GAMES
     progress_text = font.render(f"Progress: {progress}/{NUM_GAMES}", True, TEXT_COLOR)
-    screen.blit(progress_text, (panel_rect.x + 10, panel_rect.y + 450))
+    screen.blit(progress_text, (panel_rect.x + 10, panel_rect.y + 500))
 
     # Hiển thị average score từ simulation nền
     avg_score_text = font.render(f"Avg score: {avg_score:.2f}", True, TEXT_COLOR)
@@ -142,7 +144,14 @@ def draw_panel(screen, gm, font):
     min_text = font.render(f"Min: {bg_min}", True, TEXT_COLOR)
     screen.blit(min_text, (panel_rect.x + 10, panel_rect.y + 300))
 
+    max_moves_text = font.render(f"Max Moves: {bg_max_moves}", True, TEXT_COLOR)
+    screen.blit(max_moves_text, (panel_rect.x + 10, panel_rect.y + 450))
 
+    agent_text = font.render(f"Agent: {AGENT}", True, TEXT_COLOR)
+    screen.blit(agent_text, (panel_rect.x + 10, panel_rect.y + 550))
+
+    version_text = font.render(f"Version: {VERSION}", True, TEXT_COLOR)
+    screen.blit(version_text, (panel_rect.x + 10, panel_rect.y + 600))
 
 def check_play_again(screen, font, final_score):
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -215,12 +224,14 @@ def check_play_again(screen, font, final_score):
                     return False
 
 def run_background_games():
-    global max_background_score, min_background_score, total_background_score, total_background_moves, games_played, simulation_finished
+    global max_background_score, min_background_score, max_background_moves, total_background_score, total_background_moves, games_played, simulation_finished
     load_weights = np.load(WEIGHTS_PATH)
+
+    env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR, seed=RANDOM_SEED)
 
     # Chạy simulation cho NUM_GAMES game mà không vẽ giao diện
     for game_index in range(NUM_GAMES):
-        env = TetrisEnv(ROWS, COLUMNS,generator=PIECE_GENERATOR, seed= RANDOM_SEED)
+        env.reset()
         agent = TetrisAgent(env, load_weights)
         game_active = True
 
@@ -245,6 +256,8 @@ def run_background_games():
                         max_background_score = env.score
                     if env.score < min_background_score:
                         min_background_score = env.score
+                    if env.moves_played > max_background_moves:
+                        max_background_moves = env.moves_played
     simulation_finished = True
 
 def main():
@@ -259,13 +272,14 @@ def main():
     sim_thread.start()
 
     # Game UI: chơi 1 màn để quan sát
+    env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR, seed=RANDOM_SEED)
+    load_weights = np.load(WEIGHTS_PATH)
+    pygame.time.set_timer(pygame.USEREVENT + 1, DROP_INTERVAL)
     running = True
     while running:
-        env = TetrisEnv(ROWS, COLUMNS, generator=PIECE_GENERATOR, seed= RANDOM_SEED)
-        load_weights = np.load(WEIGHTS_PATH)
-        #load_weights = np.array([-0.5, 0.5, -0.5, -0.5])
+
+        env.reset()
         agent = TetrisAgent(env, load_weights)
-        pygame.time.set_timer(pygame.USEREVENT + 1, DROP_INTERVAL)
         game_active = True
         last_move_time = time.time()
 
@@ -314,11 +328,14 @@ def main():
         min_score = min_background_score if games_played > 0 else 0
         logs = (
             "Simulation finished:\n"
+            f"Agent: {AGENT}\n"
+            f"Version: {VERSION}\n"
             f"Progress: {games_played}/{NUM_GAMES}\n"
             f"Max Score: {max_background_score}\n"
             f"Min Score: {min_score}\n"
             f"Average Score: {avg_score:.2f}\n"
             f"Average moves: {avg_moves:.2f}\n"
+            f"Max Moves: {max_background_moves}\n"
         )
 
         # In ra terminal

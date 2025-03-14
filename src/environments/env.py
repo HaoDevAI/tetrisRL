@@ -3,6 +3,8 @@ from src.environments.random_piece_generator import *
 
 class TetrisEnv:
     def __init__(self, rows=20, cols=10,generator="random",seed= None):
+        self.rows = rows
+        self.cols = cols
         self.generator = generator
         self.seed = seed
         self.grid = Grid(rows, cols)
@@ -16,6 +18,24 @@ class TetrisEnv:
         self.score = 0
         self.moves_played = 0
         self.game_over = False
+
+    def reset(self):
+        """
+        Reset trạng thái game.
+        """
+        self.grid = Grid(self.rows, self.cols)
+        self.score = 0
+        self.moves_played = 0
+        self.game_over = False
+
+        # Sau khi reset, không truyền seed để giữ trạng thái random đã tiến triển.
+        if self.generator == "random":
+            self.current_piece = random_piece_generator()
+            self.next_piece = random_piece_generator()
+        elif self.generator == "classic":
+            self.seven_bag_gen = seven_bag_random_generator()
+            self.current_piece = next(self.seven_bag_gen)
+            self.next_piece = next(self.seven_bag_gen)
 
     def clone(self):
         """
