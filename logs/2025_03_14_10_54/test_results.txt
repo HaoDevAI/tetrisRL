@@ -1,0 +1,10 @@
+Simulation finished:
+Agent: 2025_03_14_10_54
+Version: best
+Progress: 100/100
+Max Score: 2475
+Min Score: 37
+Average Score: 498.47
+Average moves: 1285.95
+Max Moves: 6223
+

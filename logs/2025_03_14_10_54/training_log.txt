@@ -1,0 +1,25 @@
+
+        --- THÔNG SỐ TRAINING ---
+        Time Start: 2025-03-14 10:54:00
+        WEIGHTS: C:\Users\THIEN DUYEN\PycharmProjects\tetrisRL\logs\ref\best.npy
+        POPULATION_SIZE: 30
+        NUM_GAMES: 25
+        MAX_MOVES: 5000
+        MAX_GENERATIONS: 10
+        SIGMA: 0.01
+        ALPHA: 0.001
+        GAME_MODE: classic
+        SEED: 42
+    
+        --- KẾT QUẢ TRAINING ---
+        Time End: 2025-03-14 11:48:52
+        Training Duration: 0:54:52
+
+        Best Score: 18553
+        Best High Score Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = -0.511798
+        COMPLETE_LINES_WEIGHT = 0.771345
+        HOLES_WEIGHT = -0.335561
+        BUMPINESS_WEIGHT = -0.174609
+
+    

@@ -4,7 +4,6 @@ from src.environments.env import TetrisEnv
 from pathlib import Path
 import yaml
 
-from test.test_agent import PIECE_GENERATOR
 
 # File path
 FILE_DIR = Path(__file__).parent.parent

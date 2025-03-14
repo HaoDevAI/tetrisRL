@@ -64,7 +64,7 @@ class TetrisEnv:
         self.current_piece.x = (self.grid.cols - self.current_piece.piece_width) // 2
         self.current_piece.y = 0
         if self.generator == "random":
-            self.next_piece = random_piece_generator(seed=self.seed)
+            self.next_piece = random_piece_generator()
         elif self.generator == "classic":
             self.next_piece = next(self.seven_bag_gen)
 

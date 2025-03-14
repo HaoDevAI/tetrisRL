@@ -8,7 +8,7 @@ from src.agents.linear_agent import TetrisAgent
 from pathlib import Path
 import yaml
 
-AGENT = "ref"
+AGENT = "2025_03_14_13_07"
 VERSION = "best"
 # File path
 FILE_DIR = Path(__file__).parent.parent
@@ -17,7 +17,7 @@ AGENT_DIR = FILE_DIR / 'logs' / AGENT
 WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
 TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
 
-SAVE_MODE = False
+SAVE_MODE = True
 
 #Load game config
 with open(CONFIG, 'r') as f:
@@ -40,7 +40,7 @@ PANEL_WIDTH = 8 * BLOCK_SIZE
 PANEL_MARGIN = 10
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
-NUM_GAMES = 0 # Background games for agent's evaluation
+NUM_GAMES = 100 # Background games for agent's evaluation
 
 # Colors
 BACKGROUND_COLOR = config["background"]
