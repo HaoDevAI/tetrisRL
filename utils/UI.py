@@ -18,6 +18,7 @@ env_params = {
 # UI configuration
 ui_config = {
     "fps": config["fps"],
+    "agent_delay": config["delay"],
     "drop_interval": config["drop_interval"],
     "block_size": config["block_size"],
     "panel_width": 6 * config["block_size"],

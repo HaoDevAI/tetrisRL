@@ -5,6 +5,7 @@ import threading
 from src.environments.env import TetrisEnv
 from src.agents.tetris_agent import TetrisAgent
 from utils.UI import *
+
 # Agent information and file paths
 AGENT = "ref"
 VERSION = "best"
@@ -23,35 +24,8 @@ with open(CONFIG_PATH, 'r') as f:
 #Agent strategy
 AGENT_STRATEGY = config['strategy']
 
-# Group environment configuration
-env_params = {
-    "piece_generator": config["generator"],
-    "random_seed": config["seed"],
-    "rows": config["rows"],
-    "cols": config["cols"]
-}
 
-# Group UI configuration
-ui_config = {
-    "fps": config["fps"],
-    "delay": config["delay"],
-    "drop_interval": int(config["drop_interval"]/10),
-    "block_size": config["block_size"],
-    "panel_width": 8 * config["block_size"],
-    "panel_margin": 10,
-    "background": config["background"],
-    "border": config["border"],
-    "border_width": config["border_w"],
-    "grid": config["grid"],
-    "grid_width": config["grid_w"],
-    "panel_bg": config["panel"],
-    "text": config["text"],
-    "button_bg": config["button_bg"],
-    "button_hover": config["button_hover"]
-}
-
-
-NUM_GAMES = 7  # Background games for agent's evaluation
+NUM_GAMES = 0  # Background games for agent's evaluation
 
 # Global variables for background simulation
 max_background_score = 0
@@ -73,12 +47,12 @@ def draw_panel(screen, env, font):
         font (pygame.font.Font): The font used for rendering text.
     """
     panel_rect = pygame.Rect(WIDTH + PANEL_MARGIN, PANEL_MARGIN, PANEL_WIDTH, HEIGHT - PANEL_MARGIN * 2)
-    pygame.draw.rect(screen, ui_config["panel_bg"], panel_rect)
+    pygame.draw.rect(screen, ui_config["panel_bg_color"], panel_rect)
 
     # Next Piece preview.
     draw_next_piece(screen, env, panel_rect, font)
 
-    score_text = font.render(f"Score: {env.score}", True, ui_config["text"])
+    score_text = font.render(f"Score: {env.score}", True, ui_config["text_color"])
     screen.blit(score_text, (panel_rect.x + 10, panel_rect.y + 150))
 
     with score_lock:
@@ -89,31 +63,31 @@ def draw_panel(screen, env, font):
         avg_score = total_background_score / games_played if games_played > 0 else 0
         avg_moves = total_background_moves / games_played if games_played > 0 else 0
 
-    moves_text = font.render(f"Moves: {env.moves_played}", True, ui_config["text"])
+    moves_text = font.render(f"Moves: {env.moves_played}", True, ui_config["text_color"])
     screen.blit(moves_text, (panel_rect.x + 10, panel_rect.y + 200))
 
-    progress_text = font.render(f"Progress: {progress}/{NUM_GAMES}", True, ui_config["text"])
+    progress_text = font.render(f"Progress: {progress}/{NUM_GAMES}", True, ui_config["text_color"])
     screen.blit(progress_text, (panel_rect.x + 10, panel_rect.y + 500))
 
-    avg_score_text = font.render(f"Avg score: {avg_score:.2f}", True, ui_config["text"])
+    avg_score_text = font.render(f"Avg score: {avg_score:.2f}", True, ui_config["text_color"])
     screen.blit(avg_score_text, (panel_rect.x + 10, panel_rect.y + 350))
 
-    avg_moves_text = font.render(f"Avg moves: {avg_moves:.2f}", True, ui_config["text"])
+    avg_moves_text = font.render(f"Avg moves: {avg_moves:.2f}", True, ui_config["text_color"])
     screen.blit(avg_moves_text, (panel_rect.x + 10, panel_rect.y + 400))
 
-    max_text = font.render(f"Max: {bg_max}", True, ui_config["text"])
+    max_text = font.render(f"Max: {bg_max}", True, ui_config["text_color"])
     screen.blit(max_text, (panel_rect.x + 10, panel_rect.y + 250))
 
-    min_text = font.render(f"Min: {bg_min}", True, ui_config["text"])
+    min_text = font.render(f"Min: {bg_min}", True, ui_config["text_color"])
     screen.blit(min_text, (panel_rect.x + 10, panel_rect.y + 300))
 
-    max_moves_text = font.render(f"Max Moves: {bg_max_moves}", True, ui_config["text"])
+    max_moves_text = font.render(f"Max Moves: {bg_max_moves}", True, ui_config["text_color"])
     screen.blit(max_moves_text, (panel_rect.x + 10, panel_rect.y + 450))
 
-    agent_text = font.render(f"Agent: {AGENT}", True, ui_config["text"])
+    agent_text = font.render(f"Agent: {AGENT}", True, ui_config["text_color"])
     screen.blit(agent_text, (panel_rect.x + 10, panel_rect.y + 550))
 
-    version_text = font.render(f"Strategy: {AGENT_STRATEGY}", True, ui_config["text"])
+    version_text = font.render(f"Strategy: {AGENT_STRATEGY}", True, ui_config["text_color"])
     screen.blit(version_text, (panel_rect.x + 10, panel_rect.y + 600))
 
 def run_background_games():
@@ -178,7 +152,7 @@ def main():
     env = TetrisEnv(env_params["rows"], env_params["cols"],
                     generator=env_params["piece_generator"], seed=env_params["random_seed"])
     load_weights = np.load(WEIGHTS_PATH)
-    pygame.time.set_timer(pygame.USEREVENT + 1, ui_config["drop_interval"])
+    pygame.time.set_timer(pygame.USEREVENT + 1, int(ui_config["drop_interval"]/10))
     running = True
 
     while running:
@@ -193,7 +167,7 @@ def main():
                     game_active = False
                     running = False
                 elif event.type == pygame.USEREVENT + 1:
-                    if (time.time() - last_move_time) > ui_config["delay"]:
+                    if (time.time() - last_move_time) > ui_config["agent_delay"]:
                         best_move = None
                         if AGENT_STRATEGY == "normal":
                             best_move = agent.get_best_move()
@@ -210,7 +184,7 @@ def main():
                             env.moves_played += 1
                         last_move_time = time.time()
 
-            screen.fill(ui_config["background"])
+            screen.fill(ui_config["background_color"])
             draw_grid(screen, env.grid.board)
             draw_piece(screen, env.current_piece.get_cells(), env.current_piece.color)
             draw_panel(screen, env, font)

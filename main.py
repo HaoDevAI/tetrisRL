@@ -48,16 +48,17 @@ def draw_panel(screen, env, font, agent_mode):
     button_width = PANEL_WIDTH - 20
     button_height = 40
     button_x = panel_rect.x + 10
-    button_y = panel_rect.y + 300
+    button_y = panel_rect.y + 200
     mode_button_rect = pygame.Rect(button_x, button_y, button_width, button_height)
 
     # Set button color based on mode: RED when manual, GREEN when agent.
     if agent_mode:
-        button_color = (153, 255, 153)  # Green for agent mode.
-        button_text = "AI Mode"
+        button_color = (255, 153, 153)  # Red for manual mode.
+        button_text = "Stop"
     else:
-        button_color = (255, 153, 153) # Red for manual mode.
-        button_text = "Manual"
+        button_color = (153, 255, 153)  # Green for agent mode.
+        button_text = "Run AI"
+
 
     # (Optional) You can add a hover effect here if desired.
     mouse_pos = pygame.mouse.get_pos()
@@ -69,6 +70,13 @@ def draw_panel(screen, env, font, agent_mode):
     button_text = font.render(button_text, True, ui_config["text_color"])
     text_rect = button_text.get_rect(center=mode_button_rect.center)
     screen.blit(button_text, text_rect)
+
+    agent_text = font.render(f"Agent: {AGENT}", True, ui_config["text_color"])
+    screen.blit(agent_text, (panel_rect.x + 10, panel_rect.y + 250))
+    strategy_text = font.render(f"Version: {AGENT_STRATEGY}", True, ui_config["text_color"])
+    screen.blit(strategy_text, (panel_rect.x + 10, panel_rect.y + 300))
+    screen.blit(strategy_text, (panel_rect.x + 10, panel_rect.y + 300))
+
     return mode_button_rect
 
 # === Main game loop ===
