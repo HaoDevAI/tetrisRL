@@ -54,28 +54,22 @@ class TetrisAgent:
         best_total_score = float('-inf')
         best_move = None
 
-        # Lấy tất cả các move khả thi cho current piece
         possible_moves = self.game.get_possible_moves()
 
         for move in possible_moves:
-            # Mô phỏng nước đi của current piece
             simulated_state = self.game.simulate_move(move)
             if simulated_state is None:
                 continue
 
-            # Tính điểm của state sau khi current piece được đặt
             current_score = evaluate_state(simulated_state, self.weights)
 
-            # Lấy các move khả thi cho next piece (bây giờ là current piece của simulated_state)
             next_moves = simulated_state.get_possible_moves()
 
-            # Áp dụng beam search: nếu số move > beam_width, chỉ xét top beam_width moves
             if len(next_moves) > beam_width:
                 next_moves = next_moves[:beam_width]
 
             best_next_score = float('-inf')
             for next_move in next_moves:
-                # Mô phỏng move cho next piece
                 next_state = simulated_state.simulate_move(next_move)
                 if next_state is None:
                     continue
@@ -83,7 +77,6 @@ class TetrisAgent:
                 if score_next > best_next_score:
                     best_next_score = score_next
 
-            # Nếu không có move nào hợp lệ cho next piece, gán 0 cho best_next_score
             if best_next_score == float('-inf'):
                 best_next_score = 0
 

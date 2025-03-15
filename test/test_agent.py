@@ -1,13 +1,10 @@
 import numpy as np
 import pygame
-import sys
 import time
 import threading
 from src.environments.env import TetrisEnv
 from src.agents.tetris_agent import TetrisAgent
-from pathlib import Path
-import yaml
-
+from utils.UI import *
 # Agent information and file paths
 AGENT = "ref"
 VERSION = "best"
@@ -23,7 +20,7 @@ SAVE_MODE = False
 with open(CONFIG_PATH, 'r') as f:
     config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
 
-#Agent stratagy
+#Agent strategy
 AGENT_STRATEGY = config['strategy']
 
 # Group environment configuration
@@ -53,17 +50,8 @@ ui_config = {
     "button_hover": config["button_hover"]
 }
 
-# Derived UI variables
-BLOCK_SIZE = ui_config["block_size"]
-ROWS = env_params["rows"]
-COLUMNS = env_params["cols"]
-WIDTH = COLUMNS * BLOCK_SIZE
-HEIGHT = ROWS * BLOCK_SIZE
-PANEL_WIDTH = ui_config["panel_width"]
-PANEL_MARGIN = ui_config["panel_margin"]
-SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
-SCREEN_HEIGHT = HEIGHT
-NUM_GAMES = 0  # Background games for agent's evaluation
+
+NUM_GAMES = 7  # Background games for agent's evaluation
 
 # Global variables for background simulation
 max_background_score = 0
@@ -74,51 +62,6 @@ total_background_moves = 0
 games_played = 0
 simulation_finished = False
 score_lock = threading.Lock()
-
-
-def draw_block_3d(screen, color, x, y):
-    """
-    Draw a 3D-styled block at the given grid coordinates.
-
-    Args:
-        screen (pygame.Surface): The game screen surface.
-        color (tuple): RGB color tuple for the block.
-        x (int): X-coordinate (column index).
-        y (int): Y-coordinate (row index).
-    """
-    rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-    pygame.draw.rect(screen, color, rect)
-    pygame.draw.rect(screen, ui_config["border"], rect, ui_config["border_width"])
-
-
-def draw_grid(screen, board):
-    """
-    Draw the Tetris grid and any placed blocks on the board.
-
-    Args:
-        screen (pygame.Surface): The game screen surface.
-        board (list[list]): 2D list representing the game board.
-    """
-    for y in range(ROWS):
-        for x in range(COLUMNS):
-            rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-            pygame.draw.rect(screen, ui_config["grid"], rect, ui_config["grid_width"])
-            if board[y][x]:
-                draw_block_3d(screen, board[y][x], x, y)
-
-
-def draw_piece(screen, cells, color):
-    """
-    Draw a Tetris piece given its cell coordinates and color.
-
-    Args:
-        screen (pygame.Surface): The game screen surface.
-        cells (list[tuple]): List of (x, y) tuples for the piece's cells.
-        color (tuple): RGB color tuple for the piece.
-    """
-    for (x, y) in cells:
-        draw_block_3d(screen, color, x, y)
-
 
 def draw_panel(screen, env, font):
     """
@@ -132,22 +75,8 @@ def draw_panel(screen, env, font):
     panel_rect = pygame.Rect(WIDTH + PANEL_MARGIN, PANEL_MARGIN, PANEL_WIDTH, HEIGHT - PANEL_MARGIN * 2)
     pygame.draw.rect(screen, ui_config["panel_bg"], panel_rect)
 
-    next_text = font.render("Next Piece:", True, ui_config["text"])
-    screen.blit(next_text, (panel_rect.x + 10, panel_rect.y + 10))
-
-    next_piece = env.next_piece
-    temp_piece = next_piece.clone()
-    temp_piece.x = 0
-    temp_piece.y = 0
-    piece_height = len(temp_piece.matrix)
-    piece_width = len(temp_piece.matrix[0])
-    offset_x = panel_rect.x + (PANEL_WIDTH - piece_width * BLOCK_SIZE) // 2
-    offset_y = panel_rect.y + 40
-    for i, row in enumerate(temp_piece.matrix):
-        for j, val in enumerate(row):
-            if val:
-                rect = pygame.Rect(offset_x + j * BLOCK_SIZE, offset_y + i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-                pygame.draw.rect(screen, temp_piece.color, rect)
+    # Next Piece preview.
+    draw_next_piece(screen, env, panel_rect, font)
 
     score_text = font.render(f"Score: {env.score}", True, ui_config["text"])
     screen.blit(score_text, (panel_rect.x + 10, panel_rect.y + 150))
@@ -184,92 +113,8 @@ def draw_panel(screen, env, font):
     agent_text = font.render(f"Agent: {AGENT}", True, ui_config["text"])
     screen.blit(agent_text, (panel_rect.x + 10, panel_rect.y + 550))
 
-    version_text = font.render(f"Version: {VERSION}", True, ui_config["text"])
+    version_text = font.render(f"Strategy: {AGENT_STRATEGY}", True, ui_config["text"])
     screen.blit(version_text, (panel_rect.x + 10, panel_rect.y + 600))
-
-
-def check_play_again(screen, font, final_score):
-    """
-    Display a game over overlay with the final score and Yes/No buttons.
-    Returns True if the player chooses to play again, False otherwise.
-
-    Args:
-        screen (pygame.Surface): The game screen surface.
-        font (pygame.font.Font): The font used for rendering text.
-        final_score (int): The final score of the game.
-
-    Returns:
-        bool: True if player clicks Yes, False if No.
-    """
-    overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
-    overlay.set_alpha(200)
-    overlay.fill(ui_config["background"])
-    screen.blit(overlay, (0, 0))
-
-    game_over_text = font.render("Game Over!", True, ui_config["text"])
-    score_text = font.render(f"Score: {final_score}", True, ui_config["text"])
-    play_again_text = font.render("Play again?", True, ui_config["text"])
-
-    center_x = SCREEN_WIDTH // 2
-    game_over_rect = game_over_text.get_rect(center=(center_x, SCREEN_HEIGHT // 2 - 100))
-    score_rect = score_text.get_rect(center=(center_x, SCREEN_HEIGHT // 2 - 50))
-    play_again_rect = play_again_text.get_rect(center=(center_x, SCREEN_HEIGHT // 2))
-
-    screen.blit(game_over_text, game_over_rect)
-    screen.blit(score_text, score_rect)
-    screen.blit(play_again_text, play_again_rect)
-
-    button_width = 100
-    button_height = 50
-    spacing = 20
-
-    yes_button_rect = pygame.Rect(
-        center_x - button_width - spacing // 2,
-        SCREEN_HEIGHT // 2 + 50,
-        button_width,
-        button_height
-    )
-    no_button_rect = pygame.Rect(
-        center_x + spacing // 2,
-        SCREEN_HEIGHT // 2 + 50,
-        button_width,
-        button_height
-    )
-
-    yes_text = font.render("Yes", True, ui_config["text"])
-    no_text = font.render("No", True, ui_config["text"])
-
-    waiting = True
-    while waiting:
-        screen.blit(overlay, (0, 0))
-        screen.blit(game_over_text, game_over_rect)
-        screen.blit(score_text, score_rect)
-        screen.blit(play_again_text, play_again_rect)
-
-        mouse_pos = pygame.mouse.get_pos()
-        yes_color = ui_config["button_hover"] if yes_button_rect.collidepoint(mouse_pos) else ui_config["button_bg"]
-        no_color = ui_config["button_hover"] if no_button_rect.collidepoint(mouse_pos) else ui_config["button_bg"]
-
-        pygame.draw.rect(screen, yes_color, yes_button_rect)
-        pygame.draw.rect(screen, no_color, no_button_rect)
-
-        yes_text_rect = yes_text.get_rect(center=yes_button_rect.center)
-        no_text_rect = no_text.get_rect(center=no_button_rect.center)
-        screen.blit(yes_text, yes_text_rect)
-        screen.blit(no_text, no_text_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if yes_button_rect.collidepoint(event.pos):
-                    return True
-                elif no_button_rect.collidepoint(event.pos):
-                    return False
-
 
 def run_background_games():
     """
@@ -288,6 +133,7 @@ def run_background_games():
         game_active = True
 
         while game_active:
+            best_move = None
             if AGENT_STRATEGY == "normal":
                 best_move = agent.get_best_move()
             elif AGENT_STRATEGY == "promax":
@@ -389,7 +235,7 @@ def main():
         logs = (
             "Simulation finished:\n"
             f"Agent: {AGENT}\n"
-            f"Version: {VERSION}\n"
+            f"Strategy: {AGENT_STRATEGY}\n"
             f"Mode: {env_params['piece_generator']}\n"
             f"Progress: {games_played}/{NUM_GAMES}\n"
             f"Max Score: {max_background_score}\n"
