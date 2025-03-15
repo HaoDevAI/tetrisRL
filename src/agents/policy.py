@@ -1,16 +1,13 @@
-"""
-ref weights
-AGGREGATE_HEIGHT_WEIGHT = -0.510066
-COMPLETE_LINES_WEIGHT = 0.760666
-HOLES_WEIGHT = -0.35663
-BUMPINESS_WEIGHT = -0.184483
-
-"""
-
 def get_weights(weights):
     """
-    Nhận đầu vào là vector 4 chiều (np.array)
-    và trả về một dictionary chứa các trọng số cho từng đặc trưng
+    Convert a 4-dimensional weight vector into a dictionary mapping each feature's weight.
+
+    Args:
+        weights (np.array): A 4-dimensional vector of weights.
+
+    Returns:
+        dict: A dictionary with keys "AGGREGATE_HEIGHT_WEIGHT", "COMPLETE_LINES_WEIGHT",
+              "HOLES_WEIGHT", and "BUMPINESS_WEIGHT" and their corresponding values.
     """
     return {
         "AGGREGATE_HEIGHT_WEIGHT":  weights[0],
@@ -19,33 +16,50 @@ def get_weights(weights):
         "BUMPINESS_WEIGHT":         weights[3],
     }
 
-def compute_column_heights(board,rows,cols):
+def compute_column_heights(board, rows, cols):
     """
-    Tính chiều cao của từng cột.
-    Chiều cao của cột được định nghĩa là số ô từ vị trí đầu tiên gặp khối (1) đến đáy board.
-    Nếu cột trống hoàn toàn thì chiều cao bằng 0.
+    Compute the height of each column in the board.
+    The height is defined as the number of cells from the first filled cell (1) encountered
+    to the bottom of the board. If a column is entirely empty, its height is 0.
+
+    Args:
+        board (list[list[int]]): The game board.
+        rows (int): Number of rows in the board.
+        cols (int): Number of columns in the board.
+
+    Returns:
+        list[int]: A list containing the height of each column.
     """
     heights = [0] * cols
     for col in range(cols):
-        # Tìm hàng đầu tiên có giá trị 1 trong cột, tính từ đầu (trên) xuống dưới.
         for row in range(rows):
             if board[row][col]:
                 heights[col] = rows - row
-                break  # chỉ cần giá trị đầu tiên
+                break
     return heights
-
 
 def compute_aggregate_height(heights):
     """
-    Tổng hợp chiều cao của tất cả các cột.
+    Compute the aggregate height by summing the heights of all columns.
+
+    Args:
+        heights (list[int]): List of column heights.
+
+    Returns:
+        int: The aggregate height.
     """
     return sum(heights)
 
-
 def compute_complete_lines(board):
     """
-    Đếm số dòng đầy đủ.
-    Một dòng được xem là đầy đủ nếu tất cả các ô đều có giá trị khác 0.
+    Count the number of complete lines in the board.
+    A line is considered complete if all cells are non-zero.
+
+    Args:
+        board (list[list[int]]): The game board.
+
+    Returns:
+        int: The number of complete lines.
     """
     complete_lines = 0
     for row in board:
@@ -53,11 +67,18 @@ def compute_complete_lines(board):
             complete_lines += 1
     return complete_lines
 
-
 def compute_holes(board, rows, cols):
     """
-    Đếm số lỗ trống trên board.
-    Một lỗ trống là ô trống (0) có ít nhất một ô đã được lấp (1) phía trên nó trong cùng cột.
+    Count the number of holes in the board.
+    A hole is defined as an empty cell (0) that has at least one filled cell (1) above it in the same column.
+
+    Args:
+        board (list[list[int]]): The game board.
+        rows (int): Number of rows in the board.
+        cols (int): Number of columns in the board.
+
+    Returns:
+        int: The number of holes.
     """
     holes = 0
     for col in range(cols):
@@ -69,39 +90,44 @@ def compute_holes(board, rows, cols):
                 holes += 1
     return holes
 
-
 def compute_bumpiness(heights):
     """
-    Tính độ gồ ghề bằng tổng độ chênh lệch giữa các cột liền kề.
+    Compute the bumpiness of the board, defined as the sum of absolute differences between adjacent column heights.
+
+    Args:
+        heights (list[int]): List of column heights.
+
+    Returns:
+        int: The bumpiness value.
     """
     return sum(abs(heights[i] - heights[i + 1]) for i in range(len(heights) - 1))
 
+def evaluate_state(state, weights):
+    """
+    Evaluate the board state using weighted features.
+    The score is calculated as:
+        score = (aggregate height * weight1) + (complete lines * weight2) +
+                (holes * weight3) + (bumpiness * weight4)
 
-def evaluate_state(state,weights):
+    Assumes that the state has an attribute 'grid' with 'board', 'rows', and 'cols'.
+
+    Args:
+        state: The current state containing the game grid.
+        weights (np.array): A 4-dimensional vector of weights.
+
+    Returns:
+        float: The evaluated score of the state.
     """
-    Hàm tính điểm cho mỗi state action.
-    Giả sử state có thuộc tính board là ma trận (2D list) với 0 và 1.
-    Công thức tính điểm dựa trên:
-        score = a * (aggregate height) + b * (complete lines)
-              + c * (holes) + d * (bumpiness)
-    Các hệ số a, b, c, d được định nghĩa ở đầu file.
-    """
-    board = state.grid.board  # giả sử state có thuộc tính board
-    # Tính các đặc trưng
+    board = state.grid.board
     rows, cols = state.grid.rows, state.grid.cols
-    heights = compute_column_heights(board,rows,cols)
+    heights = compute_column_heights(board, rows, cols)
     aggregate_height = compute_aggregate_height(heights)
     complete_lines = compute_complete_lines(board)
-    holes = compute_holes(board,rows,cols)
+    holes = compute_holes(board, rows, cols)
     bumpiness = compute_bumpiness(heights)
     weights = get_weights(weights)
-    # Tính điểm tổng theo công thức
     score = (weights["AGGREGATE_HEIGHT_WEIGHT"] * aggregate_height +
              weights["COMPLETE_LINES_WEIGHT"] * complete_lines +
              weights["HOLES_WEIGHT"] * holes +
              weights["BUMPINESS_WEIGHT"] * bumpiness)
-
     return score
-
-
-

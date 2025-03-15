@@ -2,7 +2,19 @@ from src.environments.grid import Grid
 from src.environments.random_piece_generator import *
 
 class TetrisEnv:
-    def __init__(self, rows=20, cols=10,generator="random",seed= None):
+    """
+    Class representing the Tetris game environment.
+    """
+    def __init__(self, rows=20, cols=10, generator="random", seed=None):
+        """
+        Initialize the Tetris environment.
+
+        Args:
+            rows (int): Number of rows in the grid.
+            cols (int): Number of columns in the grid.
+            generator (str): Type of piece generator to use ("random" or "classic").
+            seed (optional): Seed for random number generation.
+        """
         self.rows = rows
         self.cols = cols
         self.generator = generator
@@ -21,14 +33,13 @@ class TetrisEnv:
 
     def reset(self):
         """
-        Reset trạng thái game.
+        Reset the game state to its initial configuration.
         """
         self.grid = Grid(self.rows, self.cols)
         self.score = 0
         self.moves_played = 0
         self.game_over = False
 
-        # Sau khi reset, không truyền seed để giữ trạng thái random đã tiến triển.
         if self.generator == "random":
             self.current_piece = random_piece_generator()
             self.next_piece = random_piece_generator()
@@ -39,8 +50,11 @@ class TetrisEnv:
 
     def clone(self):
         """
-        Trả về một bản sao của TetrisEnv bằng cách sử dụng hàm clone của các thành phần.
-        Lưu ý: Chúng ta giả định rằng Grid và Piece đã có hàm clone riêng.
+        Return a clone of the Tetris environment by cloning its components.
+        Note: Assumes Grid and Piece have their own clone methods.
+
+        Returns:
+            TetrisEnv: A new instance of the environment with the same state.
         """
         new_env = TetrisEnv.__new__(TetrisEnv)
         new_env.generator = self.generator
@@ -55,12 +69,12 @@ class TetrisEnv:
         return new_env
 
     def new_piece(self):
-        """Set the current piece to the next one, and generate a new next piece.
-           Check if the new piece's starting position is valid; if not, end the game.
+        """
+        Set the current piece to the next piece, generate a new next piece,
+        and center the current piece horizontally. If the new piece's starting
+        position is invalid, mark the game as over.
         """
         self.current_piece = self.next_piece
-
-        # Căn giữa: vị trí x = ((số cột lưới - độ rộng piece) / 2) điều chỉnh lại theo min_offset
         self.current_piece.x = (self.grid.cols - self.current_piece.piece_width) // 2
         self.current_piece.y = 0
         if self.generator == "random":
@@ -72,8 +86,16 @@ class TetrisEnv:
             self.game_over = True
 
     def move_piece(self, dx, dy):
-        """Attempt to move the current piece by dx, dy.
-           Revert if the new position is invalid.
+        """
+        Attempt to move the current piece by (dx, dy).
+        Revert the move if the new position is invalid.
+
+        Args:
+            dx (int): Horizontal displacement.
+            dy (int): Vertical displacement.
+
+        Returns:
+            bool: True if the move was successful, False otherwise.
         """
         self.current_piece.move(dx, dy)
         if not self.grid.is_valid_position(self.current_piece):
@@ -82,8 +104,14 @@ class TetrisEnv:
         return True
 
     def rotate_piece(self, clockwise=True):
-        """Rotate the current piece.
-           Revert the rotation if the new orientation is invalid.
+        """
+        Rotate the current piece. Revert the rotation if the new orientation is invalid.
+
+        Args:
+            clockwise (bool): If True, rotate clockwise; otherwise, rotate counterclockwise.
+
+        Returns:
+            bool: True if the rotation was successful, False otherwise.
         """
         if clockwise:
             self.current_piece.rotate()
@@ -91,7 +119,6 @@ class TetrisEnv:
             self.current_piece.rotate_counterclockwise()
 
         if not self.grid.is_valid_position(self.current_piece):
-            # Revert the rotation
             if clockwise:
                 self.current_piece.rotate_counterclockwise()
             else:
@@ -101,7 +128,7 @@ class TetrisEnv:
 
     def drop_piece(self):
         """
-        Try to move the piece down by one. If it cannot move down,
+        Attempt to move the piece down by one. If it cannot move down,
         place the piece on the grid, clear full lines, update the score,
         and spawn a new piece.
         """
@@ -121,25 +148,33 @@ class TetrisEnv:
 
     def get_ghost_piece(self):
         """
-        Tạo một bản sao của khối hiện tại và di chuyển nó xuống cho đến khi không hợp lệ,
-        sau đó lùi lại 1 bước để xác định vị trí mà khối sẽ rơi nếu hard drop.
+        Create a ghost piece by cloning the current piece and moving it downward
+        until an invalid position is reached, then move it one step up to determine
+        its landing position if hard dropped.
+
+        Returns:
+            Piece: The ghost piece.
         """
         ghost = self.current_piece.clone()
         while self.grid.is_valid_position(ghost):
             ghost.y += 1
-        ghost.y -= 1  # Lùi lại 1 bước vì bước cuối cùng không hợp lệ
+        ghost.y -= 1
         return ghost
 
     def update(self):
         """
-        Main update method that should be called on each tick.
-        This method is responsible for moving the piece down automatically.
+        Update the game state for one tick by moving the current piece down automatically.
         """
         if not self.game_over:
             self.drop_piece()
 
     def get_state(self):
-        """Return a dictionary containing current game state for UI purposes."""
+        """
+        Return the current game state for UI purposes.
+
+        Returns:
+            dict: A dictionary containing the grid, current piece cells, score, and game over status.
+        """
         return {
             "grid": self.grid.board,
             "current_piece_cells": self.current_piece.get_cells(),
@@ -147,43 +182,32 @@ class TetrisEnv:
             "game_over": self.game_over
         }
 
-    # ---------------------
-    # Các hàm hỗ trợ cho Agent
-    # ---------------------
-
     def get_possible_moves(self):
         """
-        Trả về danh sách các nước đi khả dĩ cho mảnh hiện tại.
-        Mỗi nước đi được mô tả bằng một dict với:
-            - "rotations": số lần xoay (0, 1, 2, 3)
-            - "x": vị trí x (cột) mà mảnh sẽ được đặt trước khi hard drop.
-        Hàm này sẽ thực hiện mô phỏng trên bản sao để kiểm tra tính hợp lệ.
+        Return a list of possible moves for the current piece.
+        Each move is represented as a dictionary with keys:
+            - "rotations": Number of rotations (0, 1, 2, 3)
+            - "x": The horizontal position where the piece will be placed before hard drop.
+        This function simulates moves on a clone of the current piece to check validity.
+
+        Returns:
+            list: A list of move dictionaries.
         """
         moves = []
-        # Lưu lại trạng thái ban đầu của mảnh hiện tại
         original_piece = self.current_piece.clone()
 
-        # Thử 0 đến 3 lần xoay
         for rotations in range(4):
-            # Tạo bản sao của mảnh với số lần xoay tương ứng
             piece_copy = original_piece.clone()
             for _ in range(rotations):
                 piece_copy.rotate()
 
-            # Tính các offset tương đối dựa trên ma trận của piece
             rel_cells = [(j, i) for i, row in enumerate(piece_copy.matrix)
                          for j, val in enumerate(row) if val]
             min_offset = min(j for j, _ in rel_cells)
             max_offset = max(j for j, _ in rel_cells)
 
-            # Xác định giới hạn x hợp lệ:
-            # Để không vượt quá bên trái: x >= -min_offset
-            # Và không vượt quá bên phải: x <= grid.cols - max_offset - 1
             min_x = -min_offset
             max_x = self.grid.cols - max_offset - 1
-
-            # Debug in ra offset nếu cần:
-            # print(f"Rotation {rotations}: min_offset={min_offset}, max_offset={max_offset}, min_x={min_x}, max_x={max_x}")
 
             for x in range(min_x, max_x + 1):
                 test_piece = piece_copy.clone()
@@ -194,40 +218,25 @@ class TetrisEnv:
 
     def simulate_move(self, move):
         """
-        Giả lập việc thực hiện nước đi được chỉ định.
-        move: dict có 2 khóa "rotations" và "x".
-        Trả về một bản sao của TetrisEnv sau khi áp dụng nước đi và hard drop.
+        Simulate applying a specified move.
+
+        Args:
+            move (dict): A move description with keys "rotations" and "x".
+
+        Returns:
+            TetrisEnv: A clone of the current environment after applying the move and hard drop,
+                       or None if the move is invalid.
         """
         simulated_game = self.clone()
 
-        # Áp dụng số lần xoay cho mảnh hiện tại.
         for _ in range(move["rotations"]):
             simulated_game.current_piece.rotate()
 
-        # Di chuyển mảnh về vị trí x đã chỉ định.
         simulated_game.current_piece.x = move["x"]
 
-        # Nếu vị trí hiện tại chưa hợp lệ (do xoay hay dịch chuyển), không mô phỏng được nước đi này.
         if not simulated_game.grid.is_valid_position(simulated_game.current_piece):
             return None
 
-        # Thực hiện hard drop để cho mảnh đi xuống vị trí cuối cùng.
         simulated_game.hard_drop()
 
         return simulated_game
-# Example usage:
-if __name__ == "__main__":
-    gm = TetrisEnv()
-    print("Starting game...")
-    while not gm.game_over:
-        gm.update()
-        # For demonstration, print the grid state and score.
-        # In a full game, you would integrate with a Pygame loop.
-        for row in gm.grid.board:
-            print(" ".join(str(cell) for cell in row))
-        print("Score:", gm.score)
-        print("------")
-        # Slow down loop for demo purposes
-        import time
-        time.sleep(0.5)
-    print("Game Over!")

@@ -14,8 +14,15 @@ from src.environments.env import TetrisEnv
 
 def simulate_tetris_game(env, weights, max_moves):
     """
-    Chạy 1 game Tetris sử dụng agent với số nước đi tối đa max_moves.
-    Trả về số dòng cleared (score) của game.
+    Run a Tetris game using the agent with a maximum number of moves.
+
+    Args:
+        env (TetrisEnv): The Tetris game environment.
+        weights (np.array): A weight vector for evaluating game states.
+        max_moves (int): Maximum number of moves to perform.
+
+    Returns:
+        int: The number of cleared lines (score) achieved in the game.
     """
     env.reset()
     agent = TetrisAgent(env, weights)
@@ -37,8 +44,16 @@ def simulate_tetris_game(env, weights, max_moves):
 
 def compute_fitness(random_weights, num_games, max_moves, env_params):
     """
-    Tính toán fitness cho bộ trọng số random_weights bằng cách mô phỏng num_games game.
-    env_params chứa các thông số: rows, cols, piece_generator, random_seed.
+    Compute the fitness for the given weight vector by simulating a number of games.
+
+    Args:
+        random_weights (np.array): The weight vector to evaluate.
+        num_games (int): Number of games to simulate.
+        max_moves (int): Maximum number of moves per game.
+        env_params (dict): Dictionary containing environment parameters (rows, cols, piece_generator, random_seed).
+
+    Returns:
+        int: The total number of cleared lines (cumulative score) over all games.
     """
     total_lines = 0
     env = TetrisEnv(
@@ -63,8 +78,20 @@ def evolution_strategy(
         env_params,
 ):
     """
-    Thực hiện quá trình huấn luyện theo Evolution Strategy.
-    Các tham số được truyền vào dưới dạng đối số, tránh sử dụng biến toàn cục.
+    Perform training using an Evolution Strategy.
+
+    Args:
+        pretrained_weights (str or Path): Path to the pretrained weight file (numpy file).
+        max_generations (int): Maximum number of generations.
+        population_size (int): Number of candidate weight vectors per generation.
+        sigma (float): Standard deviation for noise.
+        alpha (float): Learning rate.
+        num_games (int): Number of games to simulate for fitness evaluation.
+        max_moves (int): Maximum number of moves per game.
+        env_params (dict): Environment parameters including rows, cols, piece_generator, and random_seed.
+
+    Returns:
+        tuple: (best_params, best_fitness_value, best_avg_params, best_avg_fit, best_rewards, avg_rewards)
     """
     baseline = np.load(pretrained_weights)
     best_rewards = []
@@ -74,16 +101,12 @@ def evolution_strategy(
     best_avg_fit = -float("inf")
     best_avg_baseline = baseline.copy()
 
-
-    # Sử dụng partial để gắn thêm các tham số cho compute_fitness
     compute_fitness_partial = partial(
         compute_fitness, num_games=num_games, max_moves=max_moves, env_params=env_params
     )
-    #num_workers = max(1, mp.cpu_count()-1)
     with mp.Pool() as pool:
         for generation in range(max_generations):
             start_time = time.time()
-            # Sinh noise vector với kích thước phù hợp
             noise = np.random.randn(population_size, baseline.shape[0])
             candidates = baseline + sigma * noise
             candidates = candidates / np.linalg.norm(candidates, axis=1, keepdims=True)
@@ -120,7 +143,6 @@ def evolution_strategy(
 
 
 if __name__ == "__main__":
-    # Thiết lập đường dẫn và thư mục lưu kết quả
     FILE_DIR = Path(__file__).parent.parent.parent
     LOG_DIR = FILE_DIR / "logs"
     start_training_time = datetime.datetime.now()
@@ -133,13 +155,11 @@ if __name__ == "__main__":
     TRAIN_CONFIG = FILE_DIR / "src" / "config" / "train_config.yaml"
     GAME_CONFIG = FILE_DIR / "src" / "config" / "game_config.yaml"
 
-    # Load file cấu hình
     with open(TRAIN_CONFIG, "r", encoding="utf-8") as f:
         train_config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
     with open(GAME_CONFIG, "r", encoding="utf-8") as f:
         game_config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
 
-    # Các tham số môi trường cho Tetris
     env_params = {
         "rows": game_config["rows"],
         "cols": game_config["cols"],
@@ -147,8 +167,7 @@ if __name__ == "__main__":
         "random_seed": game_config["seed"],
     }
 
-    # Các tham số ES từ cấu hình huấn luyện
-    pretrained_weights = LOG_DIR / train_config["check_point"] / f"{train_config["model"]}.npy"
+    pretrained_weights = LOG_DIR / train_config["check_point"] / f"{train_config['model']}.npy"
     population_size = train_config["population"]
     num_games = train_config["games"]
     max_moves = train_config["moves"]
@@ -160,7 +179,7 @@ if __name__ == "__main__":
     print("Training in parallel...")
 
     training_info = f"""
-        --- THÔNG SỐ TRAINING ---
+        --- TRAINING PARAMETERS ---
         Time Start: {start_training_time.strftime("%Y-%m-%d %H:%M:%S")}
         WEIGHTS: {pretrained_weights}
         POPULATION_SIZE: {population_size}
@@ -175,7 +194,6 @@ if __name__ == "__main__":
     with open(TRAIN_LOGS_PATH, "w", encoding="utf-8") as f:
         f.write(training_info)
 
-    # Chạy huấn luyện Evolution Strategy
     best_params, best_fit, best_avg_params, best_avg_fit, best_rewards, avg_rewards = evolution_strategy(
         pretrained_weights,
         max_generations,
@@ -194,7 +212,7 @@ if __name__ == "__main__":
     print(f"BUMPINESS_WEIGHT = {best_params[3]:.6f}")
     print(f"Fitness: {best_fit}")
     print("---------------------------------")
-    print("\nBest avg score parameters:")
+    print("\nBest average score parameters:")
     print(f"AGGREGATE_HEIGHT_WEIGHT = {best_avg_params[0]:.6f}")
     print(f"COMPLETE_LINES_WEIGHT = {best_avg_params[1]:.6f}")
     print(f"HOLES_WEIGHT = {best_avg_params[2]:.6f}")
@@ -205,7 +223,7 @@ if __name__ == "__main__":
     duration = end_training_time - start_training_time
     formatted_duration = str(duration).split(".")[0]
     training_results = f"""
-        --- KẾT QUẢ TRAINING ---
+        --- TRAINING RESULTS ---
         Time End: {end_training_time.strftime("%Y-%m-%d %H:%M:%S")}
         Training Duration: {formatted_duration}
 
@@ -228,13 +246,11 @@ if __name__ == "__main__":
 
     print(f"Training logs saved in {TRAIN_LOGS_PATH}")
 
-    # Lưu weights
     np.save(BEST_SCORE, best_params)
     print("Best weights saved at {}".format(BEST_SCORE))
     np.save(BEST_AVG, best_avg_params)
     print("Best weights saved at {}".format(BEST_AVG))
 
-    # Vẽ biểu đồ fitness theo thế hệ
     plt.figure(figsize=(10, 5))
     plt.plot(range(max_generations), best_rewards, label="Best Fitness", marker="o", markersize=3)
     plt.plot(range(max_generations), avg_rewards, label="Average Fitness", linestyle="--")

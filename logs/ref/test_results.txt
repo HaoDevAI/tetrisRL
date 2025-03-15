@@ -1,7 +1,11 @@
 Simulation finished:
+Agent: ref
+Version: best
+Mode: classic
 Progress: 100/100
-Max Score: 3020
-Min Score: 16
-Average Score: 606.40
-Average moves: 1557.25
-Max Moves: 7592
+Max Score: 1820
+Min Score: 17
+Average Score: 527.08
+Average moves: 1358.01
+Max Moves: 4592
+

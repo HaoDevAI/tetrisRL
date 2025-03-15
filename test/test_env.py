@@ -1,92 +1,133 @@
+"""
+Module: test_env.py
+
+This module provides a user interface for running and testing the Tetris game.
+It loads configuration settings from a YAML file, groups environment and UI parameters
+into dictionaries (env_params and ui_config), and sets up the Pygame display for gameplay.
+The module includes functions to draw game elements (blocks, pieces, grid, panel, ghost piece)
+and handles user input to control the Tetris game.
+"""
+
 import sys
 import pygame
 from src.environments.env import TetrisEnv
+from src.agents.policy import *
 from pathlib import Path
 import yaml
-
 
 # File path
 FILE_DIR = Path(__file__).parent.parent
 CONFIG = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 
-#Load game config
+# Load game config
 with open(CONFIG, 'r') as f:
-    config = list(yaml.load_all(f,Loader=yaml.SafeLoader))[0]
+    config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
 
-#Game environment config
-PIECE_GENERATOR = config["generator"]
-RANDOM_SEED = config["seed"]
+# Environment configuration (similar to es_multi.py)
+env_params = {
+    "piece_generator": config["generator"],
+    "random_seed": config["seed"],
+    "rows": config["rows"],
+    "cols": config["cols"]
+}
 
-# Game UI config
-GAME_FPS = config["fps"]
-DROP_INTERVAL = config["drop_interval"]
-ROWS = config['rows']
-COLUMNS = config['cols']
-BLOCK_SIZE = config['block_size']
+# UI configuration
+ui_config = {
+    "fps": config["fps"],
+    "drop_interval": config["drop_interval"],
+    "block_size": config["block_size"],
+    "panel_width": 6 * config["block_size"],
+    "panel_margin": 12,
+    "background_color": config["background"],
+    "border_color": config["border"],
+    "border_width": config["border_w"],
+    "grid_color": config["grid"],
+    "grid_width": config["grid_w"],
+    "panel_bg_color": config["panel"],
+    "text_color": config["text"],
+    "button_bg_color": config["button_bg"],
+    "button_hover_color": config["button_hover"]
+}
+
+# Derived UI variables
+BLOCK_SIZE = ui_config["block_size"]
+ROWS = env_params["rows"]
+COLUMNS = env_params["cols"]
 WIDTH = COLUMNS * BLOCK_SIZE
 HEIGHT = ROWS * BLOCK_SIZE
-PANEL_WIDTH = 6 * BLOCK_SIZE
-PANEL_MARGIN = 12
+PANEL_WIDTH = ui_config["panel_width"]
+PANEL_MARGIN = ui_config["panel_margin"]
 SCREEN_WIDTH = WIDTH + PANEL_WIDTH + PANEL_MARGIN * 2
 SCREEN_HEIGHT = HEIGHT
 
-# Colors
-BACKGROUND_COLOR = config["background"]
-BORDER_COLOR = config["border"]
-BORDER_WIDTH = config["border_w"]
-GRID_COLOR = config["grid"]
-GRID_WIDTH = config["grid_w"]
-PANEL_BG_COLOR = config["panel"]
-TEXT_COLOR = config["text"]
-BUTTON_BG_COLOR = config["button_bg"]
-BUTTON_HOVER_COLOR = config["button_hover"]
 
 def draw_block_3d(screen, color, x, y):
+    """
+    Draw a 3D-styled block at the given grid coordinates.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        color (tuple): RGB color tuple for the block.
+        x (int): X-coordinate (column index).
+        y (int): Y-coordinate (row index).
+    """
     rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
     pygame.draw.rect(screen, color, rect)
+    pygame.draw.rect(screen, ui_config["border_color"], rect, ui_config["border_width"])
 
-    # Draw border
-    pygame.draw.rect(screen, BORDER_COLOR, rect, BORDER_WIDTH)
 
 def draw_piece(screen, cells, color):
-    """Draw a piece using the provided cell coordinates and color."""
+    """
+    Draw a Tetris piece using the provided cell coordinates and color.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        cells (list of tuple): List of (x, y) tuples representing cell positions.
+        color (tuple): RGB color tuple for the piece.
+    """
     for (x, y) in cells:
         draw_block_3d(screen, color, x, y)
 
+
 def draw_grid(screen, board):
-    """Draw the grid with placed blocks."""
+    """
+    Draw the game grid along with any placed blocks.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        board (list of list): 2D list representing the game board.
+    """
     for y in range(ROWS):
         for x in range(COLUMNS):
             rect = pygame.Rect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
-            # Draw grid cell border
-            pygame.draw.rect(screen, GRID_COLOR, rect, 1)
-            # If there is a placed block, fill it in
+            pygame.draw.rect(screen, ui_config["grid_color"], rect, 1)
             if board[y][x]:
                 draw_block_3d(screen, board[y][x], x, y)
 
-def draw_panel(screen, gm, font):
-    """Draw the side panel showing the next piece and lines cleared."""
-    # Define panel rect
-    panel_rect = pygame.Rect(WIDTH + PANEL_MARGIN, PANEL_MARGIN, PANEL_WIDTH, HEIGHT - PANEL_MARGIN * 2)
-    pygame.draw.rect(screen, PANEL_BG_COLOR, panel_rect)
 
-    # Display "Next Piece" text
-    next_text = font.render("Next Piece:", True, TEXT_COLOR)
+def draw_panel(screen, env, font):
+    """
+    Draw the side panel displaying the next piece and the current score.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        env (TetrisEnv): The current Tetris game environment.
+        font (pygame.font.Font): Font for rendering text.
+    """
+    panel_rect = pygame.Rect(WIDTH + PANEL_MARGIN, PANEL_MARGIN, PANEL_WIDTH, HEIGHT - PANEL_MARGIN * 2)
+    pygame.draw.rect(screen, ui_config["panel_bg_color"], panel_rect)
+
+    next_text = font.render("Next Piece:", True, ui_config["text_color"])
     screen.blit(next_text, (panel_rect.x + 10, panel_rect.y + 10))
 
-    # Draw next piece in the panel (center it in a small box)
-    next_piece = gm.next_piece
-    # Create a temporary copy and reset its position for drawing
+    next_piece = env.next_piece
     temp_piece = next_piece.clone()
-    # Reset position so that its drawing is relative to 0,0
     temp_piece.x = 0
     temp_piece.y = 0
-    # Get the dimensions of the piece matrix
     piece_height = len(temp_piece.matrix)
     piece_width = len(temp_piece.matrix[0])
-    # Calculate an offset to center the piece in a 4x4 box (or similar)
     offset_x = panel_rect.x + (PANEL_WIDTH - piece_width * BLOCK_SIZE) // 2
-    offset_y = panel_rect.y + 40  # leave some space for text
+    offset_y = panel_rect.y + 40
 
     for i, row in enumerate(temp_piece.matrix):
         for j, val in enumerate(row):
@@ -94,38 +135,69 @@ def draw_panel(screen, gm, font):
                 rect = pygame.Rect(offset_x + j * BLOCK_SIZE, offset_y + i * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE)
                 pygame.draw.rect(screen, temp_piece.color, rect)
 
-    # Display "Lines Cleared" (score)
-    score_text = font.render(f"Lines: {gm.score}", True, TEXT_COLOR)
+    score_text = font.render(f"Lines: {env.score}", True, ui_config["text_color"])
     screen.blit(score_text, (panel_rect.x + 10, panel_rect.y + 150))
+
+    y_offset = panel_rect.y + 150
+
+    board = env.grid.board
+    rows, cols = env.grid.rows, env.grid.cols
+    heights = compute_column_heights(board, rows, cols)
+    agg_height = compute_aggregate_height(heights)
+    holes = compute_holes(board, rows, cols)
+    bumpiness = compute_bumpiness(heights)
+
+    y_offset += 40
+    agg_text = font.render(f"Aggregate: {agg_height}", True, ui_config["text_color"])
+    screen.blit(agg_text, (panel_rect.x + 10, y_offset))
+
+    # Display holes count
+    y_offset += 40
+    holes_text = font.render(f"Holes: {holes}", True, ui_config["text_color"])
+    screen.blit(holes_text, (panel_rect.x + 10, y_offset))
+
+    # Display bumpiness
+    y_offset += 40
+    bump_text = font.render(f"Bumpiness: {bumpiness}", True, ui_config["text_color"])
+    screen.blit(bump_text, (panel_rect.x + 10, y_offset))
+
 
 def draw_ghost_piece(screen, ghost_piece):
     """
-    Vẽ ghost piece với hiệu ứng mờ tại vị trí hạ cánh của khối.
+    Draw a ghost (shadow) piece with transparency indicating where the current piece will land.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        ghost_piece (Piece): The ghost piece instance.
     """
-    # Tạo ghost_color bằng cách sử dụng cùng màu của khối nhưng với alpha thấp
     ghost_color = (ghost_piece.color[0], ghost_piece.color[1], ghost_piece.color[2], 100)
     for (x, y) in ghost_piece.get_cells():
-        # Tạo một surface nhỏ cho mỗi ô với chế độ alpha
         ghost_cell = pygame.Surface((BLOCK_SIZE, BLOCK_SIZE), pygame.SRCALPHA)
         ghost_cell.fill(ghost_color)
         screen.blit(ghost_cell, (x * BLOCK_SIZE, y * BLOCK_SIZE))
 
+
 def check_play_again(screen, font, final_score):
-    """Display a game over screen with score and Yes/No buttons for replay.
-       Returns True if player clicks Yes, False if No.
     """
-    # Create a semi-transparent overlay
+    Display a game over screen with final score and Yes/No buttons for replay.
+
+    Args:
+        screen (pygame.Surface): The game screen surface.
+        font (pygame.font.Font): Font for rendering text.
+        final_score (int): The final score achieved in the game.
+
+    Returns:
+        bool: True if the player chooses to play again, False otherwise.
+    """
     overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
     overlay.set_alpha(200)
-    overlay.fill(BACKGROUND_COLOR)
+    overlay.fill(ui_config["background_color"])
     screen.blit(overlay, (0, 0))
 
-    # Display final score and message
-    game_over_text = font.render("Game Over!", True, TEXT_COLOR)
-    score_text = font.render(f"Score: {final_score}", True, TEXT_COLOR)
-    play_again_text = font.render("Play again?", True, TEXT_COLOR)
+    game_over_text = font.render("Game Over!", True, ui_config["text_color"])
+    score_text = font.render(f"Score: {final_score}", True, ui_config["text_color"])
+    play_again_text = font.render("Play again?", True, ui_config["text_color"])
 
-    # Calculate positions for texts
     center_x = SCREEN_WIDTH // 2
     game_over_rect = game_over_text.get_rect(center=(center_x, SCREEN_HEIGHT // 2 - 100))
     score_rect = score_text.get_rect(center=(center_x, SCREEN_HEIGHT // 2 - 50))
@@ -135,12 +207,9 @@ def check_play_again(screen, font, final_score):
     screen.blit(score_text, score_rect)
     screen.blit(play_again_text, play_again_rect)
 
-    # Define button dimensions
     button_width = 100
     button_height = 50
     spacing = 20
-
-    # Calculate positions for the two buttons (Yes and No)
     yes_button_rect = pygame.Rect(
         center_x - button_width - spacing // 2,
         SCREEN_HEIGHT // 2 + 50,
@@ -154,30 +223,25 @@ def check_play_again(screen, font, final_score):
         button_height
     )
 
-    # Button texts
-    yes_text = font.render("Yes", True, TEXT_COLOR)
-    no_text = font.render("No", True, TEXT_COLOR)
+    yes_text = font.render("Yes", True, ui_config["text_color"])
+    no_text = font.render("No", True, ui_config["text_color"])
 
-    # Button loop
     waiting = True
     while waiting:
-        # Redraw overlay and texts to update button hover states
         screen.blit(overlay, (0, 0))
         screen.blit(game_over_text, game_over_rect)
         screen.blit(score_text, score_rect)
         screen.blit(play_again_text, play_again_rect)
 
-        # Get mouse position
         mouse_pos = pygame.mouse.get_pos()
-        # Check hover states
-        yes_color = BUTTON_HOVER_COLOR if yes_button_rect.collidepoint(mouse_pos) else BUTTON_BG_COLOR
-        no_color = BUTTON_HOVER_COLOR if no_button_rect.collidepoint(mouse_pos) else BUTTON_BG_COLOR
+        yes_color = ui_config["button_hover_color"] if yes_button_rect.collidepoint(mouse_pos) else ui_config[
+            "button_bg_color"]
+        no_color = ui_config["button_hover_color"] if no_button_rect.collidepoint(mouse_pos) else ui_config[
+            "button_bg_color"]
 
-        # Draw buttons
         pygame.draw.rect(screen, yes_color, yes_button_rect)
         pygame.draw.rect(screen, no_color, no_button_rect)
 
-        # Center text in buttons
         yes_text_rect = yes_text.get_rect(center=yes_button_rect.center)
         no_text_rect = no_text.get_rect(center=no_button_rect.center)
         screen.blit(yes_text, yes_text_rect)
@@ -197,6 +261,12 @@ def check_play_again(screen, font, final_score):
 
 
 def main():
+    """
+    Main function to initialize Pygame, set up the Tetris game, and run the game loop.
+
+    It handles user inputs for controlling the game, updates game state, draws game elements,
+    and manages game over conditions.
+    """
     pygame.init()
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Tetris AI with Pygame")
@@ -205,8 +275,13 @@ def main():
 
     running = True
     while running:
-        env = TetrisEnv(ROWS, COLUMNS,PIECE_GENERATOR,RANDOM_SEED)
-        drop_interval = 500
+        env = TetrisEnv(
+            env_params["rows"],
+            env_params["cols"],
+            env_params["piece_generator"],
+            env_params["random_seed"]
+        )
+        drop_interval = ui_config["drop_interval"]
         DROP_EVENT = pygame.USEREVENT + 1
         pygame.time.set_timer(DROP_EVENT, drop_interval)
 
@@ -232,8 +307,7 @@ def main():
                     elif event.key == pygame.K_e:
                         env.rotate_piece(clockwise=True)
 
-
-            screen.fill(BACKGROUND_COLOR)
+            screen.fill(ui_config["background_color"])
             draw_grid(screen, env.grid.board)
             ghost_piece = env.get_ghost_piece()
             draw_ghost_piece(screen, ghost_piece)
@@ -244,15 +318,15 @@ def main():
             if env.game_over:
                 game_active = False
 
-            clock.tick(60)
+            clock.tick(ui_config["fps"])
 
-        # Show game over screen with play again option
         play_again = check_play_again(screen, font, env.score)
         if not play_again:
             running = False
 
     pygame.quit()
     sys.exit()
+
 
 if __name__ == "__main__":
     main()

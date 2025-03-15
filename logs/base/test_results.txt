@@ -1,27 +1,11 @@
 Simulation finished:
+Agent: base
+Version: best
+Mode: classic
 Progress: 100/100
-Max Score: 186
-Min Score: 29
-Average Score: 73.06
-Average moves: 225.95
-Simulation finished:
-Progress: 0/100
-Max Score: 0
-Min Score: 0
-Average Score: 0.00
-Average moves: 0.00
-
-Simulation finished:
-Progress: 0/100
-Max Score: 0
-Min Score: 0
-Average Score: 0.00
-Average moves: 0.00
-
-Simulation finished:
-Progress: 0/100
-Max Score: 0
-Min Score: 0
-Average Score: 0.00
-Average moves: 0.00
+Max Score: 168
+Min Score: 23
+Average Score: 74.83
+Average moves: 230.71
+Max Moves: 465
 

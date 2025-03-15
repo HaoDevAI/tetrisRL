@@ -1,17 +1,40 @@
 class Grid:
+    """
+    Class representing the Tetris game grid.
+    """
     def __init__(self, rows=20, cols=10):
-        # Initialize a 2D grid with zeros (empty cells)
+        """
+        Initialize the grid with the specified number of rows and columns.
+
+        Args:
+            rows (int): Number of rows in the grid.
+            cols (int): Number of columns in the grid.
+        """
         self.rows = rows
         self.cols = cols
         self.board = [[0 for _ in range(cols)] for _ in range(rows)]
 
     def clone(self):
+        """
+        Create and return a shallow copy of the grid.
+
+        Returns:
+            Grid: A new Grid instance with the same board configuration.
+        """
         new_grid = Grid(self.rows, self.cols)
-        # Tạo copy nông cho board (list of lists)
         new_grid.board = [row[:] for row in self.board]
         return new_grid
 
     def is_valid_position(self, piece):
+        """
+        Check if the given piece can be placed on the grid without collisions and within boundaries.
+
+        Args:
+            piece (Piece): The Tetris piece to check.
+
+        Returns:
+            bool: True if the piece can be placed, False otherwise.
+        """
         rows, cols, board = self.rows, self.cols, self.board
         return all(
             0 <= x < cols and 0 <= y < rows and not board[y][x]
@@ -20,7 +43,10 @@ class Grid:
 
     def place_piece(self, piece):
         """
-        Place the piece on the board by marking the cells with 1 (or a specific identifier).
+        Place the given piece on the grid by marking its cells with the piece's color.
+
+        Args:
+            piece (Piece): The Tetris piece to place on the grid.
         """
         for x, y in piece.get_cells():
             if 0 <= y < self.rows and 0 <= x < self.cols:
@@ -28,16 +54,16 @@ class Grid:
 
     def clear_lines(self):
         """
-        Clear complete lines and return the number of lines cleared.
+        Clear fully occupied lines from the grid and return the number of lines cleared.
+
+        Returns:
+            int: The number of cleared lines.
         """
         cols = self.cols
-        # Giữ lại các dòng không đầy (có chứa 0)
         new_board = [row for row in self.board if 0 in row]
         lines_cleared = self.rows - len(new_board)
         if lines_cleared:
-            # Tạo các dòng trống mới
             empty_rows = [[0] * cols for _ in range(lines_cleared)]
-            # Nối các dòng trống vào đầu bảng
             self.board = empty_rows + new_board
         else:
             self.board = new_board
@@ -45,19 +71,7 @@ class Grid:
 
     def print_board(self):
         """
-        Print the board for debugging.
+        Print the current state of the grid to the console.
         """
         for row in self.board:
             print(" ".join(str(cell) for cell in row))
-
-# Example usage:
-if __name__ == "__main__":
-    from piece import Piece  # Ensure piece.py is in the same folder
-
-    grid = Grid()
-    piece = Piece('T')
-    if grid.is_valid_position(piece):
-        grid.place_piece(piece)
-    grid.print_board()
-    cleared = grid.clear_lines()
-    print("Lines cleared:", cleared)
