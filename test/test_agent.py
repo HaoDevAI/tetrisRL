@@ -11,6 +11,7 @@ import yaml
 # Agent information and file paths
 AGENT = "ref"
 VERSION = "best"
+
 FILE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT
@@ -21,6 +22,9 @@ SAVE_MODE = False
 # Load game config
 with open(CONFIG_PATH, 'r') as f:
     config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
+
+#Agent stratagy
+AGENT_STRATEGY = config['strategy']
 
 # Group environment configuration
 env_params = {
@@ -284,7 +288,10 @@ def run_background_games():
         game_active = True
 
         while game_active:
-            best_move = agent.get_best_move()
+            if AGENT_STRATEGY == "normal":
+                best_move = agent.get_best_move()
+            elif AGENT_STRATEGY == "promax":
+                best_move = agent.get_best_move_promax()
             if best_move is not None:
                 for _ in range(best_move["rotations"]):
                     env.rotate_piece(clockwise=True)
@@ -341,7 +348,10 @@ def main():
                     running = False
                 elif event.type == pygame.USEREVENT + 1:
                     if (time.time() - last_move_time) > ui_config["delay"]:
-                        best_move = agent.get_best_move_promax()
+                        if AGENT_STRATEGY == "normal":
+                            best_move = agent.get_best_move()
+                        elif AGENT_STRATEGY == "promax":
+                            best_move = agent.get_best_move_promax()
                         if best_move is not None:
                             for _ in range(best_move["rotations"]):
                                 env.rotate_piece(clockwise=True)
