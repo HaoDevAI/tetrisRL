@@ -3,5 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="tetris" />
   </component>
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13 (tetrisRL)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="tetris" project-jdk-type="Python SDK" />
 </project>

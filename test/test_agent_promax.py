@@ -2,7 +2,7 @@ import numpy as np
 import time
 import os
 from src.environments.env import TetrisEnv
-from src.agents.linear_agent import TetrisAgent
+from src.agents.tetris_agent import TetrisAgent
 from pathlib import Path
 import yaml
 

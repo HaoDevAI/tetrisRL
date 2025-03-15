@@ -11,7 +11,7 @@ and handles user input to control the Tetris game.
 import sys
 import pygame
 from src.environments.env import TetrisEnv
-from src.agents.policy import *
+from src.agents.reward import *
 from pathlib import Path
 import yaml
 

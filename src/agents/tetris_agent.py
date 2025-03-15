@@ -1,4 +1,4 @@
-from src.agents.policy import evaluate_state
+from src.agents.reward import evaluate_state
 
 class TetrisAgent:
     """

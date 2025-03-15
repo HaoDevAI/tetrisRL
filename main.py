@@ -4,7 +4,7 @@ import numpy as np
 import yaml
 from pathlib import Path
 from src.environments.env import TetrisEnv
-from src.agents.linear_agent import TetrisAgent
+from src.agents.tetris_agent import TetrisAgent
 
 # === Load configuration ===
 FILE_DIR = Path(__file__).parent
@@ -246,6 +246,7 @@ def main():
                     if not agent_actions:
                         # Compute best move for the current piece.
                         agent = TetrisAgent(env, agent_weights)
+                        best_move = None
                         if AGENT_STRATEGY == "normal":
                             best_move = agent.get_best_move()
                         elif AGENT_STRATEGY == "promax":

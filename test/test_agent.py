@@ -4,7 +4,7 @@ import sys
 import time
 import threading
 from src.environments.env import TetrisEnv
-from src.agents.linear_agent import TetrisAgent
+from src.agents.tetris_agent import TetrisAgent
 from pathlib import Path
 import yaml
 
@@ -348,6 +348,7 @@ def main():
                     running = False
                 elif event.type == pygame.USEREVENT + 1:
                     if (time.time() - last_move_time) > ui_config["delay"]:
+                        best_move = None
                         if AGENT_STRATEGY == "normal":
                             best_move = agent.get_best_move()
                         elif AGENT_STRATEGY == "promax":
