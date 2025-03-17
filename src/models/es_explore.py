@@ -14,12 +14,12 @@ from src.environments.env import TetrisEnv
 
 def simulate_tetris_game(env, weights, max_moves):
     """
-    Run a Tetris game using an agent with a maximum number of moves.
+    Run a Tetris game using the agent with a maximum number of moves.
 
     Args:
         env (TetrisEnv): The Tetris game environment.
         weights (np.array): A weight vector for evaluating game states.
-        max_moves (int): Maximum number of moves allowed.
+        max_moves (int): Maximum number of moves to perform.
 
     Returns:
         int: The number of cleared lines (score) achieved in the game.
@@ -44,7 +44,7 @@ def simulate_tetris_game(env, weights, max_moves):
 
 def compute_fitness(random_weights, num_games, max_moves, env_params):
     """
-    Compute the fitness of the given weight vector by simulating a number of games.
+    Compute the fitness for the given weight vector by simulating a number of games.
 
     Args:
         random_weights (np.array): The weight vector to evaluate.
@@ -53,7 +53,7 @@ def compute_fitness(random_weights, num_games, max_moves, env_params):
         env_params (dict): Dictionary containing environment parameters (rows, cols, piece_generator, random_seed).
 
     Returns:
-        int: The total number of cleared lines over all simulated games.
+        int: The total number of cleared lines (cumulative score) over all games.
     """
     total_lines = 0
     env = TetrisEnv(
@@ -85,19 +85,21 @@ def evolution_strategy(
         max_generations (int): Maximum number of generations.
         population_size (int): Number of candidate weight vectors per generation.
         sigma (float): Standard deviation for noise.
-        alpha (float): Learning rate (not used in this exploit version).
+        alpha (float): Learning rate.
         num_games (int): Number of games to simulate for fitness evaluation.
         max_moves (int): Maximum number of moves per game.
         env_params (dict): Environment parameters including rows, cols, piece_generator, and random_seed.
 
     Returns:
-        tuple: (best_params, best_fitness_value, best_rewards, avg_rewards)
+        tuple: (best_params, best_fitness_value, best_avg_params, best_avg_fit, best_rewards, avg_rewards)
     """
     baseline = np.load(pretrained_weights)
     best_rewards = []
     avg_rewards = []
     best_baseline = baseline.copy()
     best_fitness_value = compute_fitness(baseline, num_games, max_moves, env_params)
+    best_avg_fit = -float("inf")
+    best_avg_baseline = baseline.copy()
 
     compute_fitness_partial = partial(
         compute_fitness, num_games=num_games, max_moves=max_moves, env_params=env_params
@@ -111,27 +113,33 @@ def evolution_strategy(
 
             rewards = np.array(pool.map(compute_fitness_partial, candidates))
 
-            # Find elite candidate
-            best_idx = np.argmax(rewards)
-            elite_candidate = candidates[best_idx]
-            elite_reward = rewards[best_idx]
+            mean_reward = np.mean(rewards)
+            standardized_rewards = (rewards - mean_reward) / (np.std(rewards) + 1e-8)
+            update = (alpha / (sigma * population_size)) * np.dot(noise.T, standardized_rewards)
 
-            baseline = elite_candidate.copy()
+            baseline += update
+            baseline /= np.linalg.norm(baseline)
 
-            if elite_reward > best_fitness_value:
-                best_fitness_value = elite_reward
+            current_fitness = compute_fitness(baseline, num_games, max_moves, env_params)
+            if current_fitness > best_fitness_value:
+                best_fitness_value = current_fitness
                 best_baseline = baseline.copy()
 
+            if mean_reward > best_avg_fit:
+                best_avg_fit = mean_reward
+                best_avg_baseline = baseline.copy()
+
+            best_reward = np.max(rewards)
             generation_time = time.time() - start_time
             print(
-                f"Generation {generation}: | Best Fitness = {elite_reward:.2f} | Time: {generation_time:.2f}"
+                f"Generation {generation}: | Best Fitness = {best_reward:.2f} | Avg Fitness = {mean_reward:.2f} | Time: {generation_time:.2f}"
             )
             print(f"CPU: {psutil.cpu_percent()}% | RAM: {psutil.virtual_memory().percent}%")
 
-            best_rewards.append(elite_reward)
-            avg_rewards.append(np.mean(rewards))
+            best_rewards.append(best_reward)
+            avg_rewards.append(mean_reward)
 
-    return best_baseline, best_fitness_value, best_rewards, avg_rewards
+    return best_baseline, best_fitness_value, best_avg_baseline, best_avg_fit, best_rewards, avg_rewards
 
 
 if __name__ == "__main__":
@@ -143,6 +151,7 @@ if __name__ == "__main__":
     TRAIN_LOGS_PATH = CHECKPOINT_DIR / "training_log.txt"
     PLOT_PATH = CHECKPOINT_DIR / "fitness_plot.png"
     BEST_SCORE = CHECKPOINT_DIR / "best.npy"
+    BEST_AVG = CHECKPOINT_DIR / "best_avg.npy"
     TRAIN_CONFIG = FILE_DIR / "src" / "config" / "train_config.yaml"
     GAME_CONFIG = FILE_DIR / "src" / "config" / "game_config.yaml"
 
@@ -158,7 +167,7 @@ if __name__ == "__main__":
         "random_seed": game_config["seed"],
     }
 
-    pretrained_weights = LOG_DIR / train_config['check_point'] / f"{train_config['model']}.npy"
+    pretrained_weights = LOG_DIR / train_config["check_point"] / f"{train_config['model']}.npy"
     population_size = train_config["population"]
     num_games = train_config["games"]
     max_moves = train_config["moves"]
@@ -185,7 +194,7 @@ if __name__ == "__main__":
     with open(TRAIN_LOGS_PATH, "w", encoding="utf-8") as f:
         f.write(training_info)
 
-    best_params, best_fit, best_rewards, avg_rewards = evolution_strategy(
+    best_params, best_fit, best_avg_params, best_avg_fit, best_rewards, avg_rewards = evolution_strategy(
         pretrained_weights,
         max_generations,
         population_size,
@@ -203,6 +212,12 @@ if __name__ == "__main__":
     print(f"BUMPINESS_WEIGHT = {best_params[3]:.6f}")
     print(f"Fitness: {best_fit}")
     print("---------------------------------")
+    print("\nBest average score parameters:")
+    print(f"AGGREGATE_HEIGHT_WEIGHT = {best_avg_params[0]:.6f}")
+    print(f"COMPLETE_LINES_WEIGHT = {best_avg_params[1]:.6f}")
+    print(f"HOLES_WEIGHT = {best_avg_params[2]:.6f}")
+    print(f"BUMPINESS_WEIGHT = {best_avg_params[3]:.6f}")
+    print(f"Fitness: {best_avg_fit}")
 
     end_training_time = datetime.datetime.now()
     duration = end_training_time - start_training_time
@@ -218,6 +233,13 @@ if __name__ == "__main__":
         COMPLETE_LINES_WEIGHT = {best_params[1]:.6f}
         HOLES_WEIGHT = {best_params[2]:.6f}
         BUMPINESS_WEIGHT = {best_params[3]:.6f}
+
+        Best Average Score: {best_avg_fit:.6f}
+        Best Average Score Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = {best_avg_params[0]:.6f}
+        COMPLETE_LINES_WEIGHT = {best_avg_params[1]:.6f}
+        HOLES_WEIGHT = {best_avg_params[2]:.6f}
+        BUMPINESS_WEIGHT = {best_avg_params[3]:.6f}
     """
     with open(TRAIN_LOGS_PATH, "a", encoding="utf-8") as f:
         f.write(training_results)
@@ -226,6 +248,8 @@ if __name__ == "__main__":
 
     np.save(BEST_SCORE, best_params)
     print("Best weights saved at {}".format(BEST_SCORE))
+    np.save(BEST_AVG, best_avg_params)
+    print("Best weights saved at {}".format(BEST_AVG))
 
     plt.figure(figsize=(10, 5))
     plt.plot(range(max_generations), best_rewards, label="Best Fitness", marker="o", markersize=3)

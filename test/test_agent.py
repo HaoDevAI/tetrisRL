@@ -25,7 +25,7 @@ with open(CONFIG_PATH, 'r') as f:
 AGENT_STRATEGY = config['strategy']
 
 
-NUM_GAMES = 0  # Background games for agent's evaluation
+NUM_GAMES = 7  # Background games for agent's evaluation
 
 # Global variables for background simulation
 max_background_score = 0

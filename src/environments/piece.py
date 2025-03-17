@@ -1,4 +1,3 @@
-# Mapping Tetris piece identifiers to their rotation matrices.
 SHAPES = {
     'I': [
         [
@@ -112,7 +111,6 @@ SHAPES = {
     ]
 }
 
-# Mapping Tetris piece identifiers to their corresponding RGB colors.
 SHAPES_COLORS = {
     "I": (102, 204, 204),
     "O": (255, 255, 153),
@@ -125,18 +123,14 @@ SHAPES_COLORS = {
 
 
 class Piece:
-    """
-    Class representing a Tetris piece with its shape, color, and rotational states.
-    """
+    """Class representing a Tetris piece."""
+
     def __init__(self, shape):
         """
-        Initialize a Piece object with a specified shape.
+        Initialize a Tetris piece.
 
         Args:
-            shape (str): The identifier of the Tetris shape.
-
-        Raises:
-            ValueError: If the specified shape is not defined in SHAPES.
+            shape (str): Identifier for the Tetris shape.
         """
         if shape not in SHAPES:
             raise ValueError(f"Shape {shape} is not defined.")
@@ -151,13 +145,12 @@ class Piece:
     @property
     def piece_width(self):
         """
-        Calculate the width of the piece based on its current matrix representation.
+        Get the width of the piece.
 
         Returns:
-            int: The width of the piece.
+            int: The width.
         """
-        rel_cells = [j for i, row in enumerate(self.matrix)
-                     for j, val in enumerate(row) if val]
+        rel_cells = [j for i, row in enumerate(self.matrix) for j, val in enumerate(row) if val]
         if not rel_cells:
             return 0
         min_offset = min(rel_cells)
@@ -165,25 +158,21 @@ class Piece:
         return max_offset - min_offset + 1
 
     def rotate(self):
-        """
-        Rotate the piece clockwise.
-        """
+        """Rotate the piece clockwise."""
         self.rotation_index = (self.rotation_index + 1) % len(self.rotations)
         self.matrix = [row[:] for row in self.rotations[self.rotation_index]]
 
     def rotate_counterclockwise(self):
-        """
-        Rotate the piece counterclockwise.
-        """
+        """Rotate the piece counterclockwise."""
         self.rotation_index = (self.rotation_index - 1) % len(self.rotations)
         self.matrix = [row[:] for row in self.rotations[self.rotation_index]]
 
     def get_cells(self):
         """
-        Get the absolute grid positions of the blocks that constitute the piece.
+        Get the grid cells occupied by the piece.
 
         Returns:
-            list of tuple: A list containing (x, y) positions of each block.
+            list: List of (x, y) tuples.
         """
         cells = []
         for i, row in enumerate(self.matrix):
@@ -194,21 +183,21 @@ class Piece:
 
     def move(self, dx, dy):
         """
-        Move the piece by a given offset.
+        Move the piece.
 
         Args:
-            dx (int): Change in x-coordinate (columns).
-            dy (int): Change in y-coordinate (rows).
+            dx (int): Change in x-coordinate.
+            dy (int): Change in y-coordinate.
         """
         self.x += dx
         self.y += dy
 
     def clone(self):
         """
-        Create and return a copy of the current piece.
+        Clone the piece.
 
         Returns:
-            Piece: A new Piece instance with the same state.
+            Piece: A cloned piece instance.
         """
         cloned = Piece(self.shape)
         cloned.rotation_index = self.rotation_index

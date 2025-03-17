@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/HaoNA_Assignment.iml" filepath="$PROJECT_DIR$/.idea/HaoNA_Assignment.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/tetrisRL.iml" filepath="$PROJECT_DIR$/.idea/tetrisRL.iml" />
     </modules>
   </component>
 </project>

@@ -1,34 +1,32 @@
 def get_weights(weights):
     """
-    Convert a 4-dimensional weight vector into a dictionary mapping each feature's weight.
+    Convert a weight vector into a dictionary.
 
     Args:
-        weights (np.array): A 4-dimensional vector of weights.
+        weights (np.array): Weight vector.
 
     Returns:
-        dict: A dictionary with keys "AGGREGATE_HEIGHT_WEIGHT", "COMPLETE_LINES_WEIGHT",
-              "HOLES_WEIGHT", and "BUMPINESS_WEIGHT" and their corresponding values.
+        dict: Dictionary mapping feature names to weights.
     """
     return {
-        "AGGREGATE_HEIGHT_WEIGHT":  weights[0],
-        "COMPLETE_LINES_WEIGHT":    weights[1],
-        "HOLES_WEIGHT":             weights[2],
-        "BUMPINESS_WEIGHT":         weights[3],
+        "AGGREGATE_HEIGHT_WEIGHT": weights[0],
+        "COMPLETE_LINES_WEIGHT": weights[1],
+        "HOLES_WEIGHT": weights[2],
+        "BUMPINESS_WEIGHT": weights[3],
     }
+
 
 def compute_column_heights(board, rows, cols):
     """
-    Compute the height of each column in the board.
-    The height is defined as the number of cells from the first filled cell (1) encountered
-    to the bottom of the board. If a column is entirely empty, its height is 0.
+    Compute the heights of each column.
 
     Args:
-        board (list[list[int]]): The game board.
-        rows (int): Number of rows in the board.
-        cols (int): Number of columns in the board.
+        board (list[list[int]]): Game board.
+        rows (int): Number of rows.
+        cols (int): Number of columns.
 
     Returns:
-        list[int]: A list containing the height of each column.
+        list[int]: List of column heights.
     """
     heights = [0] * cols
     for col in range(cols):
@@ -38,9 +36,10 @@ def compute_column_heights(board, rows, cols):
                 break
     return heights
 
+
 def compute_aggregate_height(heights):
     """
-    Compute the aggregate height by summing the heights of all columns.
+    Compute the aggregate height.
 
     Args:
         heights (list[int]): List of column heights.
@@ -50,18 +49,31 @@ def compute_aggregate_height(heights):
     """
     return sum(heights)
 
-def compute_holes(board, rows, cols):
+
+def compute_clear_lines(board):
     """
-    Count the number of holes in the board.
-    A hole is defined as an empty cell (0) that has at least one filled cell (1) above it in the same column.
+    Compute the number of complete lines in the board.
 
     Args:
-        board (list[list[int]]): The game board.
-        rows (int): Number of rows in the board.
-        cols (int): Number of columns in the board.
+        board (list[list[int]]): Game board.
 
     Returns:
-        int: The number of holes.
+        int: Number of complete lines.
+    """
+    return sum(1 for row in board if all(cell != 0 for cell in row))
+
+
+def compute_holes(board, rows, cols):
+    """
+    Compute the number of holes in the board.
+
+    Args:
+        board (list[list[int]]): Game board.
+        rows (int): Number of rows.
+        cols (int): Number of columns.
+
+    Returns:
+        int: Number of holes.
     """
     holes = 0
     for col in range(cols):
@@ -73,44 +85,41 @@ def compute_holes(board, rows, cols):
                 holes += 1
     return holes
 
+
 def compute_bumpiness(heights):
     """
-    Compute the bumpiness of the board, defined as the sum of absolute differences between adjacent column heights.
+    Compute the bumpiness of the board.
 
     Args:
         heights (list[int]): List of column heights.
 
     Returns:
-        int: The bumpiness value.
+        int: Bumpiness value.
     """
     return sum(abs(heights[i] - heights[i + 1]) for i in range(len(heights) - 1))
 
+
 def evaluate_state(state, weights):
     """
-    Evaluate the board state using weighted features.
-    The score is calculated as:
-        score = (aggregate height * weight1) + (complete lines * weight2) +
-                (holes * weight3) + (bumpiness * weight4)
-
-    Assumes that the state has an attribute 'grid' with 'board', 'rows', and 'cols'.
+    Evaluate the game state using weighted features.
 
     Args:
-        state: The current state containing the game grid.
-        weights (np.array): A 4-dimensional vector of weights.
+        state: Game state containing grid.
+        weights (np.array): Weight vector.
 
     Returns:
-        float: The evaluated score of the state.
+        float: The evaluation score.
     """
     board = state.grid.board
     rows, cols = state.grid.rows, state.grid.cols
     heights = compute_column_heights(board, rows, cols)
     aggregate_height = compute_aggregate_height(heights)
-    complete_lines = state.grid.clear_lines()
+    complete_lines = state.grid.lines_cleared
     holes = compute_holes(board, rows, cols)
     bumpiness = compute_bumpiness(heights)
-    weights = get_weights(weights)
-    score = (weights["AGGREGATE_HEIGHT_WEIGHT"] * aggregate_height +
-             weights["COMPLETE_LINES_WEIGHT"] * complete_lines +
-             weights["HOLES_WEIGHT"] * holes +
-             weights["BUMPINESS_WEIGHT"] * bumpiness)
+    weights_dict = get_weights(weights)
+    score = (weights_dict["AGGREGATE_HEIGHT_WEIGHT"] * aggregate_height +
+             weights_dict["COMPLETE_LINES_WEIGHT"] * complete_lines +
+             weights_dict["HOLES_WEIGHT"] * holes +
+             weights_dict["BUMPINESS_WEIGHT"] * bumpiness)
     return score

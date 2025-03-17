@@ -35,7 +35,7 @@ def draw_panel(screen, env, font):
     # Next Piece preview.
     draw_next_piece(screen, env, panel_rect, font)
 
-    score_text = font.render(f"Lines: {env.score}", True, ui_config["text_color"])
+    score_text = font.render(f"Lines: {env.grid.lines_cleared}", True, ui_config["text_color"])
     screen.blit(score_text, (panel_rect.x + 10, panel_rect.y + 150))
 
     y_offset = panel_rect.y + 150

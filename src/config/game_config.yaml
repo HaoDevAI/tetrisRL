@@ -10,10 +10,10 @@ drop_interval: 500
 
 #Environment config
 generator: 'classic'    #'classic' / 'random'
-seed:
+seed: 30
 
 #Agent config
-strategy: 'promax'      #'normal' / 'promax'
+strategy: 'normal'      #'normal' / 'promax'
 
 #Color config
 background: [245, 245, 245]

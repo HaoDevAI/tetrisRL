@@ -1,0 +1,31 @@
+
+        --- THÔNG SỐ TRAINING ---
+        Time Start: 2025-03-13 17:49:16
+        WEIGHTS: E:\HaoDevAI\REL301m\HaoNA_Assignment\logs\base\weights.npy
+        POPULATION_SIZE: 30
+        NUM_GAMES: 10
+        MAX_MOVES: 500
+        MAX_GENERATIONS: 10
+        SIGMA: 0.1
+        ALPHA: 0.05
+        GAME_MODE: classic
+        SEED: 42
+    
+        --- KẾT QUẢ TRAINING ---
+        Time End: 2025-03-13 18:05:25
+        Training Duration: 0:16:09
+
+        Best Score: 1789
+        Best High Score Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = -0.594016
+        COMPLETE_LINES_WEIGHT = 0.425662
+        HOLES_WEIGHT = -0.646910
+        BUMPINESS_WEIGHT = -0.217863
+
+        Best Average Score: 1562.566667
+        Best Average Score Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = -0.524557
+        COMPLETE_LINES_WEIGHT = 0.364069
+        HOLES_WEIGHT = -0.639652
+        BUMPINESS_WEIGHT = -0.427948
+    

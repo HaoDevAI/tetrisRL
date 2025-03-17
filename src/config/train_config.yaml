@@ -1,9 +1,9 @@
 #----Training configuration----
-check_point: '2025_03_14_12_02'
+check_point: 'ref'
 model: "best"
-population: 30     # Số lượng cá thể
+population: 8     # Số lượng cá thể
 games: 25           # Số game để đánh giá một cá thể
-moves: 5000         # Số nước đi tối đa trong mỗi game
+moves: 10000         # Số nước đi tối đa trong mỗi game
 generations: 10     # Số thế hệ huấn luyện ES
 sigma: 0.001         # Độ lệch chuẩn của nhiễu Gaussian
 lr: 0.0001            # Learning rate

@@ -1,48 +1,49 @@
 Simulation finished:
-Agent: base
+Agent: first_explore
 Agent mode: normal
 Game Mode: classic
 Random seed: 30
 Games Completed: 100/100
-Max Score: 277
-Min Score: 23
-Average Score: 80.71
-Average Moves: 244.92
-Max Moves: 734
+Max Score: 423
+Min Score: 41
+Average Score: 170.34
+Average Moves: 468.25
+Max Moves: 1099
 _____________________________
 Simulation finished:
-Agent: base
+Agent: first_explore
 Agent mode: promax
 Game Mode: classic
 Random seed: 30
 Games Completed: 100/100
-Max Score: 329
-Min Score: 35
-Average Score: 103.94
-Average Moves: 301.58
-Max Moves: 864
+Max Score: 664
+Min Score: 33
+Average Score: 157.61
+Average Moves: 435.79
+Max Moves: 1704
 _____________________________
 Simulation finished:
-Agent: base
+Agent: first_explore
 Agent mode: normal
 Game Mode: random
 Random seed: 30
 Games Completed: 100/100
-Max Score: 144
-Min Score: 18
-Average Score: 66.08
-Average Moves: 207.86
-Max Moves: 402
+Max Score: 338
+Min Score: 34
+Average Score: 132.74
+Average Moves: 374.56
+Max Moves: 890
 _____________________________
 Simulation finished:
-Agent: base
+Agent: first_explore
 Agent mode: promax
 Game Mode: random
 Random seed: 30
 Games Completed: 100/100
-Max Score: 221
-Min Score: 21
-Average Score: 89.83
-Average Moves: 266.56
-Max Moves: 595
+Max Score: 439
+Min Score: 19
+Average Score: 138.80
+Average Moves: 388.67
+Max Moves: 1140
 _____________________________
+

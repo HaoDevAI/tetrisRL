@@ -1,0 +1,25 @@
+
+        --- THÔNG SỐ TRAINING ---
+        Time Start: 2025-03-13 15:07:02
+        WEIGHTS: E:\HaoDevAI\REL301m\HaoNA_Assignment\logs\base\best.npy
+        POPULATION_SIZE: 50
+        NUM_GAMES: 10
+        MAX_MOVES: 500
+        MAX_GENERATIONS: 20
+        SIGMA: 0.2
+        ALPHA: 0.1
+        GAME_MODE: classic
+        SEED: 42
+
+        
+        --- KẾT QUẢ TRAINING ---
+        Time End: 2025-03-13 15:52:35
+        Training Duration: 0:45:33
+        Best Fitness: 1161
+
+        Final Heuristic Parameters:
+        AGGREGATE_HEIGHT_WEIGHT = -0.486010
+        COMPLETE_LINES_WEIGHT = 0.015293
+        HOLES_WEIGHT = -0.734998
+        BUMPINESS_WEIGHT = -0.472587
+        
