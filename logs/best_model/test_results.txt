@@ -1,38 +1,14 @@
 Simulation finished:
 Agent: best_model
 Agent mode: normal
-Game Mode: random
-Random seed: 30
-Games Completed: 100/100
-Max Score: 1905
-Min Score: 13
-Average Score: 418.05
-Average Moves: 1084.40
-Max Moves: 4802
-_____________________________
-Simulation finished:
-Agent: best_model
-Agent mode: normal
 Game Mode: classic
 Random seed: 30
 Games Completed: 100/100
-Max Score: 14513
-Min Score: 92
-Average Score: 3100.57
-Average Moves: 7793.61
-Max Moves: 36327
-_____________________________
-Simulation finished:
-Agent: best_model
-Agent mode: normal
-Game Mode: classic
-Random seed: 30
-Games Completed: 100/100
-Max Score: 14527
-Min Score: 98
-Average Score: 3630.85
-Average Moves: 9118.84
-Max Moves: 36361
+Max Score: 21659
+Min Score: 65
+Average Score: 3886.89
+Average Moves: 9512.94
+Max Moves: 54267
 _____________________________
 Simulation finished:
 Agent: best_model
@@ -40,9 +16,9 @@ Agent mode: normal
 Game Mode: random
 Random seed: 30
 Games Completed: 100/100
-Max Score: 1862
-Min Score: 5
-Average Score: 416.54
-Average Moves: 1081.40
-Max Moves: 4698
+Max Score: 2266
+Min Score: 35
+Average Score: 485.82
+Average Moves: 1254.82
+Max Moves: 5710
 _____________________________

@@ -9,7 +9,7 @@ delay: 0
 drop_interval: 500
 
 #Environment config
-generator: 'classic'    #'classic' / 'random'
+generator: 'random'    #'classic' / 'random'
 seed: 30
 
 #Agent config

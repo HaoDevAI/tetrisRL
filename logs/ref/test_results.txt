@@ -22,3 +22,16 @@ Average Score: 455.42
 Average Moves: 1178.46
 Max Moves: 4834
 _____________________________
+
+Simulation finished:
+Agent: ref
+Agent mode: promax
+Game Mode: classic
+Random seed: 30
+Games Completed: 56/100
+Max Score: 2275
+Min Score: 56
+Average Score: 497.09
+Average Moves: 1283.43
+Max Moves: 5729
+_____________________________

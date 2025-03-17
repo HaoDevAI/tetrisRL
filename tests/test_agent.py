@@ -12,20 +12,20 @@ from src.utils.display import draw_grid, draw_piece, draw_next_piece, check_play
 from src.utils.config import ui_config, SCREEN_WIDTH, SCREEN_HEIGHT, env_params, WIDTH, HEIGHT, PANEL_MARGIN, PANEL_WIDTH
 
 # Agent information and file paths
-AGENT_NAME = "2025_03_17_18_35"
+AGENT_NAME = "best_model"
 FILE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT_NAME
 VERSION = "best"
 WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
 TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
-SAVE_MODE = False
+SAVE_MODE = True
 
 # Load game config
 with open(CONFIG_PATH, 'r') as f:
     config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
 STRATEGY = config['strategy']
-NUM_SIMULATION_GAMES = 10  # Number of background simulation games
+NUM_SIMULATION_GAMES = 100  # Number of background simulation games
 
 # Global simulation statistics
 max_score = 0
@@ -138,7 +138,7 @@ def run_simulation_games():
     """
     global max_score, min_score, max_moves, total_score, total_moves, games_completed, simulation_finished
 
-    with ProcessPoolExecutor() as executor:
+    with ProcessPoolExecutor(max_workers=6) as executor:
         futures = [executor.submit(simulate_single_game, i) for i in range(NUM_SIMULATION_GAMES)]
         for future in as_completed(futures):
             result = future.result()  # (score, moves_played)

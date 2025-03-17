@@ -3,7 +3,7 @@ check_point: 'ref'
 model: "best"
 population: 8     # Số lượng cá thể
 games: 25           # Số game để đánh giá một cá thể
-moves: 10000         # Số nước đi tối đa trong mỗi game
+moves: 500         # Số nước đi tối đa trong mỗi game
 generations: 10     # Số thế hệ huấn luyện ES
 sigma: 0.001         # Độ lệch chuẩn của nhiễu Gaussian
 lr: 0.0001            # Learning rate
