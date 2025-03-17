@@ -31,20 +31,3 @@ def generate_7_bag(seed=None):
     tetrominos = SHAPE_KEYS.copy()
     rng.shuffle(tetrominos)
     return tetrominos
-
-def seven_bag_random_generator(seed=None):
-    """
-    Generator that yields Tetris piece instances using the 7-bag randomizer algorithm.
-
-    Args:
-        seed (optional): Seed for the random number generator.
-
-    Yields:
-        Piece: A Tetris piece instance.
-    """
-    bag = []
-    while True:
-        if not bag:
-            bag = generate_7_bag(seed)
-        shape = bag.pop()
-        yield Piece(shape)

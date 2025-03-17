@@ -24,9 +24,13 @@ class TetrisEnv:
             self.current_piece = random_piece_generator(seed=self.seed)
             self.next_piece = random_piece_generator()
         elif self.generator == "classic":
-            self.seven_bag_gen = seven_bag_random_generator(seed=self.seed)
-            self.current_piece = next(self.seven_bag_gen)
-            self.next_piece = next(self.seven_bag_gen)
+            # Tạo túi đầu tiên
+            self.current_bag = generate_7_bag(seed=self.seed)
+            # Lấy 2 viên đầu tiên từ túi
+            self.current_piece = Piece(self.current_bag.pop())
+            if not self.current_bag:  # Nếu túi rỗng, tạo lại
+                self.current_bag = generate_7_bag()
+            self.next_piece = Piece(self.current_bag.pop())
         self.score = 0
         self.moves_played = 0
         self.game_over = False
@@ -44,9 +48,12 @@ class TetrisEnv:
             self.current_piece = random_piece_generator()
             self.next_piece = random_piece_generator()
         elif self.generator == "classic":
-            self.seven_bag_gen = seven_bag_random_generator()
-            self.current_piece = next(self.seven_bag_gen)
-            self.next_piece = next(self.seven_bag_gen)
+            # Khởi tạo lại túi 7-bag mới cho ván đấu mới.
+            self.current_bag = generate_7_bag(seed=self.seed)
+            self.current_piece = Piece(self.current_bag.pop())
+            if not self.current_bag:  # Dự phòng, nếu túi rỗng thì tạo lại
+                self.current_bag = generate_7_bag()
+            self.next_piece = Piece(self.current_bag.pop())
 
     def clone(self):
         """
@@ -65,23 +72,20 @@ class TetrisEnv:
         new_env.score = self.score
         new_env.game_over = self.game_over
         if self.generator == "classic":
-            new_env.seven_bag_gen = self.seven_bag_gen
+            # Sao chép trạng thái của túi hiện tại để clone không làm thay đổi túi của game gốc
+            new_env.current_bag = self.current_bag.copy() if hasattr(self, 'current_bag') else []
         return new_env
 
     def new_piece(self):
-        """
-        Set the current piece to the next piece, generate a new next piece,
-        and center the current piece horizontally. If the new piece's starting
-        position is invalid, mark the game as over.
-        """
         self.current_piece = self.next_piece
         self.current_piece.x = (self.grid.cols - self.current_piece.piece_width) // 2
-        self.current_piece.y = 0
+        # Sử dụng bag đã lưu để lấy viên tiếp theo
         if self.generator == "random":
             self.next_piece = random_piece_generator()
         elif self.generator == "classic":
-            self.next_piece = next(self.seven_bag_gen)
-
+            if not self.current_bag:  # Nếu túi rỗng, tạo một túi mới (không cần seed nữa)
+                self.current_bag = generate_7_bag()
+            self.next_piece = Piece(self.current_bag.pop())
         if not self.grid.is_valid_position(self.current_piece):
             self.game_over = True
 

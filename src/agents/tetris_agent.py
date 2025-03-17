@@ -50,7 +50,7 @@ class TetrisAgent:
         Returns:
             dict: The move of the current piece with the highest total reward (current + next move).
         """
-        beam_width = 10
+        beam_width = 5
         best_total_score = float('-inf')
         best_move = None
 

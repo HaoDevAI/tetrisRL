@@ -7,10 +7,18 @@ into dictionaries (env_params and ui_config), and sets up the Pygame display for
 The module includes functions to draw game elements (blocks, pieces, grid, panel, ghost piece)
 and handles user input to control the Tetris game.
 """
+import numpy as np
 import pygame
 from src.environments.env import TetrisEnv
 from src.agents.reward import *
 from utils.UI import *
+
+# === Agent setup ===
+AGENT = "ref"
+VERSION = "best"
+AGENT_DIR = FILE_DIR / 'logs' / AGENT
+WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
+agent_weights = np.load(WEIGHTS_PATH)
 
 def draw_panel(screen, env, font):
     """
@@ -38,6 +46,7 @@ def draw_panel(screen, env, font):
     agg_height = compute_aggregate_height(heights)
     holes = compute_holes(board, rows, cols)
     bumpiness = compute_bumpiness(heights)
+    reward = evaluate_state(env,agent_weights)
 
     y_offset += 40
     agg_text = font.render(f"Aggregate: {agg_height}", True, ui_config["text_color"])
@@ -52,6 +61,10 @@ def draw_panel(screen, env, font):
     y_offset += 40
     bump_text = font.render(f"Bumpiness: {bumpiness}", True, ui_config["text_color"])
     screen.blit(bump_text, (panel_rect.x + 10, y_offset))
+
+    y_offset += 40
+    reward_text = font.render(f"Reward: {reward}", True, ui_config["text_color"])
+    screen.blit(reward_text, (panel_rect.x + 10, y_offset))
 
 def main():
     """

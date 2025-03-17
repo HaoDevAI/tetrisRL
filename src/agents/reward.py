@@ -50,23 +50,6 @@ def compute_aggregate_height(heights):
     """
     return sum(heights)
 
-def compute_complete_lines(board):
-    """
-    Count the number of complete lines in the board.
-    A line is considered complete if all cells are non-zero.
-
-    Args:
-        board (list[list[int]]): The game board.
-
-    Returns:
-        int: The number of complete lines.
-    """
-    complete_lines = 0
-    for row in board:
-        if 0 not in row:
-            complete_lines += 1
-    return complete_lines
-
 def compute_holes(board, rows, cols):
     """
     Count the number of holes in the board.
@@ -122,7 +105,7 @@ def evaluate_state(state, weights):
     rows, cols = state.grid.rows, state.grid.cols
     heights = compute_column_heights(board, rows, cols)
     aggregate_height = compute_aggregate_height(heights)
-    complete_lines = compute_complete_lines(board)
+    complete_lines = state.grid.clear_lines()
     holes = compute_holes(board, rows, cols)
     bumpiness = compute_bumpiness(heights)
     weights = get_weights(weights)
