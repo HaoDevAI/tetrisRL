@@ -27,7 +27,7 @@ def main():
     CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
     with open(CONFIG_PATH, 'r') as f:
         config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
-    AGENT = "ref"
+    AGENT = "best_model"
     VERSION = "best"
     AGENT_DIR = FILE_DIR / 'logs' / AGENT
     WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"

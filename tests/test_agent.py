@@ -12,7 +12,7 @@ from src.utils.display import draw_grid, draw_piece, draw_next_piece, check_play
 from src.utils.config import ui_config, SCREEN_WIDTH, SCREEN_HEIGHT, env_params, WIDTH, HEIGHT, PANEL_MARGIN, PANEL_WIDTH
 
 # Agent information and file paths
-AGENT_NAME = "base"
+AGENT_NAME = "best_model"
 FILE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT_NAME
