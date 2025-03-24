@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 from functools import partial
 
-from src.agents.tetris_agent import TetrisAgent
+from src.agents.agent import TetrisAgent
 from src.environments.env import TetrisEnv
 
 
