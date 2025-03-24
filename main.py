@@ -20,14 +20,14 @@ def main():
     font = pygame.font.SysFont("Arial", 24)
 
     MANUAL_DROP_INTERVAL = ui_config["drop_interval"]
-    AGENT_DROP_INTERVAL = int(ui_config["drop_interval"] / 10)
-    AGENT_ACTION_INTERVAL = 10
+    AGENT_DROP_INTERVAL = ui_config["drop_interval"] // 1
+    AGENT_ACTION_INTERVAL = 50
 
     FILE_DIR = Path(__file__).parent
     CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
     with open(CONFIG_PATH, 'r') as f:
         config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
-    AGENT = "best_model"
+    AGENT = "ref"
     VERSION = "best"
     AGENT_DIR = FILE_DIR / 'logs' / AGENT
     WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
@@ -39,7 +39,6 @@ def main():
 
     running = True
     agent_mode = False
-
     while running:
         env = TetrisEnv(env_params["rows"],
                         env_params["cols"],

@@ -40,18 +40,24 @@ class TetrisAgent:
         Returns:
             dict: The best move.
         """
-        beam_width = 5
-        best_total_score = float('-inf')
-        best_move = None
+        beam_width = 10
         possible_moves = self.env.get_possible_moves()
+
+        current_moves_info = []
         for move in possible_moves:
             simulated_state = self.env.simulate_move(move)
             if simulated_state is None:
                 continue
             current_score = evaluate_state(simulated_state, self.weights)
+            current_moves_info.append((move, current_score, simulated_state))
+
+        current_moves_info.sort(key=lambda x: x[1], reverse=True)
+
+        best_total_score = float('-inf')
+        best_move = None
+
+        for move, current_score, simulated_state in current_moves_info[:beam_width]:
             next_moves = simulated_state.get_possible_moves()
-            if len(next_moves) > beam_width:
-                next_moves = next_moves[:beam_width]
             best_next_score = float('-inf')
             for next_move in next_moves:
                 next_state = simulated_state.simulate_move(next_move)
@@ -66,6 +72,7 @@ class TetrisAgent:
             if total_score > best_total_score:
                 best_total_score = total_score
                 best_move = move
+
         return best_move
 
     def get_best_move(self):

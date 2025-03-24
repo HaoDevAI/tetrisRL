@@ -4,16 +4,16 @@ cols: 10
 block_size: 30
 
 #UI config
-fps: 60
-delay: 0
+fps: 120
+delay: 0.05
 drop_interval: 500
 
 #Environment config
 generator: 'random'    #'classic' / 'random'
-seed: 30
+seed: 123
 
 #Agent config
-strategy: 'normal'      #'normal' / 'promax'
+strategy: 'promax'      #'normal' / 'promax'
 
 #Color config
 background: [245, 245, 245]

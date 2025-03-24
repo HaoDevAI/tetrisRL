@@ -12,20 +12,20 @@ from src.utils.display import draw_grid, draw_piece, draw_next_piece, check_play
 from src.utils.config import ui_config, SCREEN_WIDTH, SCREEN_HEIGHT, env_params, WIDTH, HEIGHT, PANEL_MARGIN, PANEL_WIDTH
 
 # Agent information and file paths
-AGENT_NAME = "best_model"
+AGENT_NAME = "base"
 FILE_DIR = Path(__file__).parent.parent
 CONFIG_PATH = FILE_DIR / 'src' / 'config' / 'game_config.yaml'
 AGENT_DIR = FILE_DIR / 'logs' / AGENT_NAME
 VERSION = "best"
 WEIGHTS_PATH = AGENT_DIR / f"{VERSION}.npy"
 TEST_LOGS_PATH = AGENT_DIR / 'test_results.txt'
-SAVE_MODE = True
+SAVE_MODE = False
 
 # Load game config
 with open(CONFIG_PATH, 'r') as f:
     config = list(yaml.load_all(f, Loader=yaml.SafeLoader))[0]
 STRATEGY = config['strategy']
-NUM_SIMULATION_GAMES = 100  # Number of background simulation games
+NUM_SIMULATION_GAMES = 20  # Number of background simulation games
 
 # Global simulation statistics
 max_score = 0
@@ -49,7 +49,7 @@ def draw_agent_panel(screen, env, font):
     # Draw the next piece preview at the top of the panel.
     draw_next_piece(screen, env, panel_rect, font)
 
-    y_offset = panel_rect.y + 100  # Adjust offset after next piece preview
+    y_offset = panel_rect.y + 120  # Adjust offset after next piece preview
     current_score_text = font.render(f"Score: {env.score}", True, ui_config["text_color"])
     screen.blit(current_score_text, (panel_rect.x + 10, y_offset))
     y_offset += 40
@@ -116,13 +116,7 @@ def simulate_single_game(game_index):
         if best_move is not None:
             for _ in range(best_move["rotations"]):
                 env_sim.rotate_piece(clockwise=True)
-            dx = best_move["x"] - env_sim.current_piece.x
-            if dx > 0:
-                for _ in range(dx):
-                    env_sim.move_piece(1, 0)
-            elif dx < 0:
-                for _ in range(-dx):
-                    env_sim.move_piece(-1, 0)
+            env_sim.current_piece.x = best_move["x"]
             env_sim.hard_drop()
             env_sim.moves_played += 1
         else:
@@ -197,13 +191,7 @@ def main():
                         if best_move is not None:
                             for _ in range(best_move["rotations"]):
                                 env.rotate_piece(clockwise=True)
-                            dx = best_move["x"] - env.current_piece.x
-                            if dx > 0:
-                                for _ in range(dx):
-                                    env.move_piece(1, 0)
-                            elif dx < 0:
-                                for _ in range(-dx):
-                                    env.move_piece(-1, 0)
+                            env.current_piece.x = best_move["x"]
                             env.hard_drop()
                             env.moves_played += 1
                         else:
