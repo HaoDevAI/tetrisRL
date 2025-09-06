@@ -56,6 +56,9 @@ After training, the agent consistently clears thousands of lines and achieves hi
    ```bash
    python main,py
    ```
+## Screenshot
+
+![gameplay](https://github.com/user-attachments/assets/5db3146b-c1c8-4a08-8eab-5f4411e89a01)
 
 ## 🔗 References
 
